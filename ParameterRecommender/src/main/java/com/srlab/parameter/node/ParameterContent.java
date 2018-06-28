@@ -9,8 +9,10 @@ import com.github.javaparser.ast.expr.CastExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.Name;
+import com.github.javaparser.ast.expr.NullLiteralExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.SimpleName;
+import com.github.javaparser.ast.expr.StringLiteralExpr;
 
 public class ParameterContent implements Serializable{
 	protected ParameterContent receiver;
@@ -35,6 +37,16 @@ public class ParameterContent implements Serializable{
 		stringParamNode = node.toString();
 	}
 
+	public String getStringRep(Expression expression) {
+		if(expression instanceof StringLiteralExpr) {
+			return expression.toString();
+		}
+		else if(expression instanceof NullLiteralExpr) {
+			return expression.toString();
+		}
+		else if(expression instanceof )
+		else return null;
+	}
 	/*public void processReceiver(MethodCallExpr mi, MethodDeclaration md,
 			Node node) {
 		if (node instanceof SimpleName) {

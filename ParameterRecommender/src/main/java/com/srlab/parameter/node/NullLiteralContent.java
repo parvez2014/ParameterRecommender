@@ -14,10 +14,6 @@ public class NullLiteralContent extends ParameterContent{
 		name = nl.toString();
 		this.absStringRep = this.getStringRep(nl);
 	}
-	private String getStringRep(NullLiteralExpr nl) {
-		// TODO Auto-generated method stub
-		return nl.toString();
-	}
 	public String getName() {
 		return name;
 	}
