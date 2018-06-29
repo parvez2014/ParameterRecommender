@@ -10,6 +10,7 @@ import java.io.StreamTokenizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -21,6 +22,7 @@ import com.github.javaparser.Position;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
@@ -28,38 +30,28 @@ import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclar
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
-import com.sail.evaluatingevaluator.binding.JSSConfigurator;
-import com.sail.evaluatingevaluator.config.Config;
+import com.sail.evaluatingevaluator.completioner.ModelEntry;
+import com.sail.evaluatingevaluator.completioner.Token;
+import com.srlab.parameter.binding.JSSConfigurator;
+import com.srlab.parameter.config.Config;
 
 
 public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 
-	private List<ModelEntry> modelEntryList = new ArrayList();
+	private List<ParameterDescriptor> parameterDescriptorList;
 	private String filePath;
 	private CompilationUnit cu;
 	private HashMap<String,String> hmKeyword;
 	private HashMap<String, String> hmLineKeyword;
-	private List<Integer> addedLineList;
 	public static int NL=4;
 	
 	public MethodCallExprVisitor(CompilationUnit _cu, String _path) {
 		// TODO Auto-generated constructor stub
 		this.cu = _cu;
-		this.modelEntryList = new ArrayList();
+		this.parameterDescriptorList = new LinkedList();
 		this.filePath = _path;
 		this.hmKeyword = new HashMap();
 		this.hmLineKeyword = new HashMap();
-		this.addedLineList = null;
-		this.initKeywords();
-	}
-	public MethodCallExprVisitor(CompilationUnit _cu, String _path, List<Integer> _addedLineList) {
-		// TODO Auto-generated constructor stub
-		this.cu = _cu;
-		this.modelEntryList = new ArrayList();
-		this.filePath = _path;
-		this.hmKeyword = new HashMap();
-		this.hmLineKeyword = new HashMap();
-		this.addedLineList = _addedLineList;
 		this.initKeywords();
 	}
 	
@@ -375,170 +367,161 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 		  //return list;
 	  }
 	
-	public List<Token> tokenize(String  input) throws IOException{
-		
-		//Step-1: declare return object 
-		List<Token> tokenList = new ArrayList();
-		
-	    
-		//Step-2: initialize StreamTokenizer to tokenize source code 
-		InputStream is = new ByteArrayInputStream(input.getBytes());
-	    StreamTokenizer streamTokenizer = new StreamTokenizer(new InputStreamReader(is));
-	    streamTokenizer.parseNumbers();
-	    streamTokenizer.wordChars('_', '_');
-	    streamTokenizer.eolIsSignificant(false);
-	    streamTokenizer.slashSlashComments(true);
-	    streamTokenizer.slashStarComments(true);
-	   	 
-	    
-	    //Step-3: collect list of tokens
-	    int tokenNumber=0;
-	    int token = streamTokenizer.nextToken();
-	    while (token != StreamTokenizer.TT_EOF) {
-	 
-	    	if(streamTokenizer.sval!=null && streamTokenizer.sval.matches("\\s+")){
-	    	  tokenNumber++;
-	    	}
-	      
-	    	switch (token) {
-	    	
-	    		case StreamTokenizer.TT_NUMBER: double num = streamTokenizer.nval; 
-	    										break;
-	    		case StreamTokenizer.TT_WORD:   tokenList.add(new Token(streamTokenizer.sval,streamTokenizer.lineno()));
-	    									  	break;
-	    		case '"': 	String dquoteVal = streamTokenizer.sval;
-	    					break;
-	    		case '\'':	String squoteVal = streamTokenizer.sval;
-	    					break;
-	    		case StreamTokenizer.TT_EOL:	break;
-	    		case StreamTokenizer.TT_EOF:    break;
-	    		
-	    		default: char ch = (char) streamTokenizer.ttype;
-	    				 tokenList.add(new Token(""+ch,streamTokenizer.lineno())); break;
-	    	}
-	    	token = streamTokenizer.nextToken();
-	    }
-	    is.close();
-	    return tokenList;
-	}
-	
-	//input points to complete source code. Start is the start and end is of Position type
-	private String collectSourceString(String input, Position start, Position end) {
-		int idxStart = -1;
-		int curIdx = 0;
-		int curLine = 1;
-		
-		while(curLine<=end.line){
-			if(curLine>=start.line && curLine<=end.line) {
-				if(curLine==start.line && idxStart==-1){
-					idxStart = curIdx+start.column-1;
-				}
-				if(curLine==end.line) {
-					for(int column=0;column<end.column;column++){
-						curIdx++;
-					}
-					curLine++;
-				}
-			}	
-			if(input.charAt(curIdx)=='\n') curLine++;
+	  public List<Token> tokenize(String  input) throws IOException{
 			
-			curIdx++;
+			//Step-1: declare return object 
+			List<Token> tokenList = new ArrayList();
+			
+		    
+			//Step-2: initialize StreamTokenizer to tokenize source code 
+			InputStream is = new ByteArrayInputStream(input.getBytes());
+		    StreamTokenizer streamTokenizer = new StreamTokenizer(new InputStreamReader(is));
+		    streamTokenizer.parseNumbers();
+		    streamTokenizer.wordChars('_', '_');
+		    streamTokenizer.eolIsSignificant(false);
+		    streamTokenizer.slashSlashComments(true);
+		    streamTokenizer.slashStarComments(true);
+		   	 
+		    
+		    //Step-3: collect list of tokens
+		    int tokenNumber=0;
+		    int token = streamTokenizer.nextToken();
+		    while (token != StreamTokenizer.TT_EOF) {
+		 
+		    	if(streamTokenizer.sval!=null && streamTokenizer.sval.matches("\\s+")){
+		    	  tokenNumber++;
+		    	}
+		      
+		    	switch (token) {
+		    	
+		    		case StreamTokenizer.TT_NUMBER: double num = streamTokenizer.nval; 
+		    										break;
+		    		case StreamTokenizer.TT_WORD:   tokenList.add(new Token(streamTokenizer.sval,streamTokenizer.lineno()));
+		    									  	break;
+		    		case '"': 	String dquoteVal = streamTokenizer.sval;
+		    					break;
+		    		case '\'':	String squoteVal = streamTokenizer.sval;
+		    					break;
+		    		case StreamTokenizer.TT_EOL:	break;
+		    		case StreamTokenizer.TT_EOF:    break;
+		    		
+		    		default: char ch = (char) streamTokenizer.ttype;
+		    				 tokenList.add(new Token(""+ch,streamTokenizer.lineno())); break;
+		    	}
+		    	token = streamTokenizer.nextToken();
+		    }
+		    is.close();
+		    return tokenList;
 		}
-		System.out.println("Start = "+idxStart+" End: "+curIdx);
-		return input.substring(idxStart,curIdx);
-	}
-	
-	@Override
-	public void visit(MethodCallExpr m, Void arg) {
-		// TODO Auto-generated method stub
-		super.visit(m, arg);
-		if(m.getScope().isPresent()) {
-			try {
-				//System.out.println("Expression expression: "+m+" File:"+this.getFilePath());
-				//System.out.println("Method Name: "+m.getName().getIdentifier() +" Scope: "+m.getScope().get()+ m.getBegin().get().line);
+		
+		//input points to complete source code. Start is the start and end is of Position type
+		private String collectSourceString(String input, Position start, Position end) {
+			int idxStart = -1;
+			int curIdx = 0;
+			int curLine = 1;
+			
+			while(curLine<=end.line){
+				if(curLine>=start.line && curLine<=end.line) {
+					if(curLine==start.line && idxStart==-1){
+						idxStart = curIdx+start.column-1;
+					}
+					if(curLine==end.line) {
+						for(int column=0;column<end.column;column++){
+							curIdx++;
+						}
+						curLine++;
+					}
+				}	
+				if(input.charAt(curIdx)=='\n') curLine++;
 				
-				//perform checking to filer method call expressions that does not belong to the changed line
-				if(addedLineList!=null) {
-					if(addedLineList.contains(m.getBegin().get().line)==false) return;
-				}
-				
-				SymbolReference<ResolvedMethodDeclaration> resolvedMethodDeclaration = JSSConfigurator.getInstance().getJpf().solve(m);
-				List<String> parameterList = new ArrayList();
-				//System.out.println("Number of Parameters: "+resolvedMethodDeclaration.getCorrespondingDeclaration().getNumberOfParams());
-				
-				for(int i=0;i<resolvedMethodDeclaration.getCorrespondingDeclaration().getNumberOfParams();i++) {
-					ResolvedType type = resolvedMethodDeclaration.getCorrespondingDeclaration().getParam(i).getType();
-					if(type.isPrimitive())
-						parameterList.add(type.asPrimitive().name());
-					else if(type.isReferenceType())
-						parameterList.add(type.asReferenceType().getQualifiedName());
-					else {
-						//System.out.println("Type: "+type);
-						throw new RuntimeException("Error in resolving parameter type");
-					}		
-				}
-				if(resolvedMethodDeclaration.isSolved() && resolvedMethodDeclaration.getCorrespondingDeclaration()!=null && Config.isInteresting(resolvedMethodDeclaration.getCorrespondingDeclaration().getQualifiedName())) {
-					//System.out.println("Binding Resolved");
-					if(Config.isInteresting(resolvedMethodDeclaration.getCorrespondingDeclaration().getQualifiedName())) {
-						
-						MethodDeclaration methodDeclaration = this.getMethodDeclarationContainer(m);	
-						
-						
-						//System.out.println("Parameters: "+parameterList);
-						if(methodDeclaration!=null && methodDeclaration.getBegin().isPresent() && m.getBegin().isPresent()) {
+				curIdx++;
+			}
+			System.out.println("Start = "+idxStart+" End: "+curIdx);
+			return input.substring(idxStart,curIdx);
+		}
+		
+		@Override
+		public void visit(MethodCallExpr m, Void arg) {
+			// TODO Auto-generated method stub
+			super.visit(m, arg);
+			if(m.getScope().isPresent()) {
+				try {					
+					SymbolReference<ResolvedMethodDeclaration> resolvedMethodDeclaration = JSSConfigurator.getInstance().getJpf().solve(m);
+					List<String> parameterList = new ArrayList();
+					//System.out.println("Number of Parameters: "+resolvedMethodDeclaration.getCorrespondingDeclaration().getNumberOfParams());
+					
+					for(int i=0;i<resolvedMethodDeclaration.getCorrespondingDeclaration().getNumberOfParams();i++) {
+						ResolvedType type = resolvedMethodDeclaration.getCorrespondingDeclaration().getParam(i).getType();
+						if(type.isPrimitive())
+							parameterList.add(type.asPrimitive().name());
+						else if(type.isReferenceType())
+							parameterList.add(type.asReferenceType().getQualifiedName());
+						else {
+							//System.out.println("Type: "+type);
+							throw new RuntimeException("Error in resolving parameter type");
+						}		
+					}
+					if(resolvedMethodDeclaration.isSolved() && resolvedMethodDeclaration.getCorrespondingDeclaration()!=null && Config.isInteresting(resolvedMethodDeclaration.getCorrespondingDeclaration().getQualifiedName())) {
+						//System.out.println("Binding Resolved");
+						if(Config.isInteresting(resolvedMethodDeclaration.getCorrespondingDeclaration().getQualifiedName())) {
 							
-							/*System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++=");
-							System.out.println("Expression expression: "+m);
-							System.out.println("Method Name: "+m.getName().getIdentifier() +" Scope: "+m.getScope().get());
-							System.out.println("QN: "+resolvedMethodDeclaration.getCorrespondingDeclaration().getQualifiedName());
-							System.out.println("Package Name: "+resolvedMethodDeclaration.getCorrespondingDeclaration().getPackageName());
-							System.out.println("Class Name: "+resolvedMethodDeclaration.getCorrespondingDeclaration().getClassName());
-							System.out.println(": "+resolvedMethodDeclaration.getCorrespondingDeclaration().getClassName());
-							
-							System.out.println("MethoDeclaration: Start"+methodDeclaration.getBegin().get() +"End: "+methodDeclaration.getEnd().get()+ "MethodCallExpr: "+m.getBegin().get());
-							*/
-							String source = FileUtils.readFileToString(new File(this.filePath));
-							String text = this.collectSourceString(source,methodDeclaration.getBegin().get(),m.getBegin().get());
-							
-							List<Token> tokenList = this.tokenize(text);
-							//System.out.println("Prefix: \n"+text);
-							//for(Token token:tokenList) {
-							//	System.out.println("T: "+token.getToken());
-							//}
-							
-							String neighborList   = this.calcNeighbor(tokenList,tokenList.size()-1);
-							String lineContent    = this.getLineContent(tokenList, tokenList.size()-1);
-							
-							//System.out.println("Context: " + neighborList);
-							//System.out.println("Content: " + lineContent);
+							MethodDeclaration methodDeclaration = this.getMethodDeclarationContainer(m);	
 							
 							
-							ModelEntry modelEntry = new ModelEntry(m.getBegin().get().line,
-								m.getName().getIdentifier(),
-								resolvedMethodDeclaration.getCorrespondingDeclaration().getPackageName()+"."+resolvedMethodDeclaration.getCorrespondingDeclaration().getClassName(),
-								parameterList,
-								neighborList,
-								lineContent,
-								this.getFilePath());
-							modelEntryList.add(modelEntry);
-							System.out.println("Model Entry: "+modelEntry);
+							//System.out.println("Parameters: "+parameterList);
+							if(methodDeclaration!=null && methodDeclaration.getBegin().isPresent() && m.getBegin().isPresent()) {
+								
+								/*System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++=");
+								System.out.println("Expression expression: "+m);
+								System.out.println("Method Name: "+m.getName().getIdentifier() +" Scope: "+m.getScope().get());
+								System.out.println("QN: "+resolvedMethodDeclaration.getCorrespondingDeclaration().getQualifiedName());
+								System.out.println("Package Name: "+resolvedMethodDeclaration.getCorrespondingDeclaration().getPackageName());
+								System.out.println("Class Name: "+resolvedMethodDeclaration.getCorrespondingDeclaration().getClassName());
+								System.out.println(": "+resolvedMethodDeclaration.getCorrespondingDeclaration().getClassName());
+								
+								System.out.println("MethoDeclaration: Start"+methodDeclaration.getBegin().get() +"End: "+methodDeclaration.getEnd().get()+ "MethodCallExpr: "+m.getBegin().get());
+								*/
+								String source = FileUtils.readFileToString(new File(this.filePath));
+								String text = this.collectSourceString(source,methodDeclaration.getBegin().get(),m.getBegin().get());
+								
+								List<Token> tokenList = this.tokenize(text);
+								//System.out.println("Prefix: \n"+text);
+								//for(Token token:tokenList) {
+								//	System.out.println("T: "+token.getToken());
+								//}
+								
+								String neighborList   = this.calcNeighbor(tokenList,tokenList.size()-1);
+								String lineContent    = this.getLineContent(tokenList, tokenList.size()-1);
+								
+								//System.out.println("Context: " + neighborList);
+								//System.out.println("Content: " + lineContent);
+								
+								
+								ModelEntry modelEntry = new ModelEntry(m.getBegin().get().line,
+									m.getName().getIdentifier(),
+									resolvedMethodDeclaration.getCorrespondingDeclaration().getPackageName()+"."+resolvedMethodDeclaration.getCorrespondingDeclaration().getClassName(),
+									parameterList,
+									neighborList,
+									lineContent,
+									this.getFilePath());
+								modelEntryList.add(modelEntry);
+								System.out.println("Model Entry: "+modelEntry);
+							}
 						}
 					}
+				}catch(Exception e) {
+					//e.printStackTrace();
+					//System.out.println("Fail to resolve type");
 				}
-			}catch(Exception e) {
-				//e.printStackTrace();
-				//System.out.println("Fail to resolve type");
 			}
 		}
-	}
+
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-
 	}
-
-	public List<ModelEntry> getModelEntryList() {
-		return modelEntryList;
+	public List<ParameterDescriptor> getParameterDescriptorList() {
+		return parameterDescriptorList;
 	}
 
 }

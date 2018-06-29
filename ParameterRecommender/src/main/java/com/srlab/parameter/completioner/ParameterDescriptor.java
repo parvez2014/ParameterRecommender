@@ -63,7 +63,7 @@ public class ParameterDescriptor implements Serializable{
 		this.lineContent = lineContent;
 	}
 
-		private void setParameterContent(MethodInvocation methodInvocation, MethodDeclaration methodDeclaration, Expression parameterExpression){
+		/*private void setParameterContent(MethodInvocation methodInvocation, MethodDeclaration methodDeclaration, Expression parameterExpression){
 		if(parameterExpression instanceof SimpleName){
 			parameterContent = new SimpleNameContent(methodInvocation,methodDeclaration, (SimpleName)parameterExpression);
 		}
@@ -100,7 +100,7 @@ public class ParameterDescriptor implements Serializable{
 		else{
 			parameterContent = new UnknownContent(methodInvocation,methodDeclaration,parameterExpression);				
 		}
-	}
+	}*/
 
 		public int getId() {
 			return id;
