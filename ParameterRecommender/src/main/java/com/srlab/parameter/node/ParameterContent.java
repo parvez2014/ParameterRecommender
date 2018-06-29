@@ -44,8 +44,7 @@ public class ParameterContent implements Serializable{
 		else if(expression instanceof NullLiteralExpr) {
 			return expression.toString();
 		}
-		else if(expression instanceof )
-		else return null;
+		return null;
 	}
 	/*public void processReceiver(MethodCallExpr mi, MethodDeclaration md,
 			Node node) {
