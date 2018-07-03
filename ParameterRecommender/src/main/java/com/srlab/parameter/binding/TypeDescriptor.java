@@ -7,8 +7,8 @@ import com.github.javaparser.resolution.types.ResolvedWildcard.BoundType;
 
 public class TypeDescriptor implements Serializable{
 
-	public boolean primitiveType;
-	public boolean array;
+	private boolean primitiveType;
+	private boolean array;
 	private boolean nullType;
 	private boolean reference;
 	private boolean referenceType;
@@ -17,9 +17,11 @@ public class TypeDescriptor implements Serializable{
 	private boolean unionType;
 	private boolean wildcard;
 	private BoundType boundType;
+	private String typeQualifiedName;
 	
-	private String name;
 	public TypeDescriptor(ResolvedType resolvedType) {
+		
+		//Step-1: initialize variables
 		this.primitiveType = resolvedType.isPrimitive();
 		this.array = resolvedType.isArray();
 		this.nullType = resolvedType.isNull();
@@ -30,10 +32,24 @@ public class TypeDescriptor implements Serializable{
 		this.unionType = resolvedType.isUnionType();
 		this.wildcard = resolvedType.isWildcard();
 		this.boundType = null;
-		this.name = this.getName(resolvedType);
+		
+		//Step-2: determine the bound type
+		if(resolvedType.isWildcard()) {
+			if(resolvedType.asWildcard().isSuper())
+				this.boundType = BoundType.SUPER;
+			else if(resolvedType.asWildcard().isExtends()) {
+				this.boundType = BoundType.EXTENDS;
+			}
+			else {
+				this.boundType = null;
+			}
+		}
+		
+		//Step-3: collect type qualified name
+		this.typeQualifiedName = TypeDescriptor.resolveTypeQualifiedName(resolvedType);
 	}
 	
-	public String getName(ResolvedType resolvedType) {
+	public static String resolveTypeQualifiedName(ResolvedType resolvedType) {
 		
 		if(resolvedType.isPrimitive()) {	
 			return resolvedType.asPrimitive().name();
@@ -48,24 +64,16 @@ public class TypeDescriptor implements Serializable{
 			return "null";
 		}
 		else if(resolvedType.isArray()) {
-			return this.getName(resolvedType.asArrayType().getComponentType());
+			return TypeDescriptor.resolveTypeQualifiedName(resolvedType.asArrayType().getComponentType());
 		}
 		else if(resolvedType.isUnionType()) {
-			return this.getName(resolvedType.asUnionType());
+			return TypeDescriptor.resolveTypeQualifiedName(resolvedType.asUnionType());
 		}
 		else if(resolvedType.isTypeVariable()) {
 			return resolvedType.asTypeVariable().qualifiedName();
 		}
 		else if(resolvedType.isWildcard()) {
-			if(resolvedType.asWildcard().isSuper())
-				this.boundType = BoundType.SUPER;
-			else if(resolvedType.asWildcard().isExtends()) {
-				this.boundType = BoundType.EXTENDS;
-			}
-			else {
-				this.boundType = null;
-			}
-			return this.getName(resolvedType.asWildcard().getBoundedType());
+			return TypeDescriptor.resolveTypeQualifiedName(resolvedType.asWildcard().getBoundedType());
 		}
 		else throw new RuntimeException("Failed to understand resolved type: "+resolvedType.toString());
 	}
@@ -108,14 +116,13 @@ public class TypeDescriptor implements Serializable{
 
 	public BoundType getBoundType() {
 		return boundType;
-	}
-
-	public String getName() {
-		return name;
+	} 
+	public String getTypeQualifiedName() {
+		return typeQualifiedName;
 	}
 
 	@Override
 	public String toString() {
-		return "[typename=" + name + "]";
+		return "[typename=" + typeQualifiedName + "]";
 	}
 }

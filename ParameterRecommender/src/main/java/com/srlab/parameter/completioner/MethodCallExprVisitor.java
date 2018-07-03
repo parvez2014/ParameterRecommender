@@ -497,7 +497,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 								//System.out.println("Content: " + lineContent);
 								
 								
-								ModelEntry modelEntry = new ModelEntry(m.getBegin().get().line,
+								ParameterModelEntry modelEntry = new ParameterModelEntry(m.getBegin().get().line,
 									m.getName().getIdentifier(),
 									resolvedMethodDeclaration.getCorrespondingDeclaration().getPackageName()+"."+resolvedMethodDeclaration.getCorrespondingDeclaration().getClassName(),
 									parameterList,

@@ -4,7 +4,7 @@ import java.io.File;
 
 public class Config {
 
-	public static final String ROOT_PATH = "/home/parvez/research/historic_evaluation/repositories";
+	public static final String ROOT_PATH = "E:\\research\\parameter_recommendation";
 	
 	public static final String REPOSITORY_NAME = "jhotdraw"; 
 	public static final String REPOSITORY_PATH = ROOT_PATH + File.separator + REPOSITORY_NAME;

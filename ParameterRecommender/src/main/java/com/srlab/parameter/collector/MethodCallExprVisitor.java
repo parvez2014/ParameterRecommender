@@ -82,7 +82,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 
 	}
 
-	public List<ModelEntry> getModelEntryList() {
+	public List<ParameterModelEntry> getModelEntryList() {
 		return modelEntryList;
 	}
 
