@@ -9,7 +9,7 @@ public class VariableMatchComparator implements Comparator<Object>{
 	private String varName;
 
 	VariableMatchComparator(String _varName) {
-		this.varName = varName;
+		this.varName = _varName;
 	}
 
 	public int compare(Object o1, Object o2) {
@@ -82,7 +82,7 @@ public class VariableMatchComparator implements Comparator<Object>{
 	 * @return the longest common substring
 	 */
 	private static String getLongestCommonSubstring(String first, String second) {
-
+		System.out.println("First "+first+" second"+second);
 		String shorter = (first.length() <= second.length()) ? first : second;
 		String longer = shorter == first ? second : first;
 

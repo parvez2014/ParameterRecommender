@@ -34,69 +34,149 @@ import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.binding.TypeDescriptor;
 import com.srlab.parameter.completioner.SourcePosition;
 
-public class SimpleNameCollector extends VoidVisitorAdapter<Void>{
+import sun.reflect.generics.tree.ReturnType;
 
+/*
+ * Given a method declaration and a source position, this class collect all the variables declared or used prior to the 
+ * specified position. This include variables in the method declaration, parameter, field and inherited field variables
+ */
+public class SimpleNameCollector extends VoidVisitorAdapter<Void> {
+
+	private SourcePosition origin; // we need to collect variables that appears before this location
 	private MethodDeclaration methodDeclaration;
-	private SourcePosition origin;
-	private List<VariableEntity> localVariableEntities;
+
+	private List<VariableEntity> localVariableDeclarationEntities;
+	private List<VariableEntity> localVariableDeclarationOrAssignedEntities;
+	
 	private List<VariableEntity> fieldVariableEntities;
 	private List<VariableEntity> inheritedVariableEntities;
 	private List<VariableEntity> parameterVariableEntities;
 	private List<VariableEntity> usedVariableEntities;
-	
-	private TypeDeclaration typeDeclaration;
-	
+
 	public SimpleNameCollector(MethodDeclaration _methodDeclaration, SourcePosition _sourcePosition) {
 		this.methodDeclaration = _methodDeclaration;
-		this.origin = _sourcePosition; //we need to collect variables that appears before this location
-		this.localVariableEntities = new LinkedList();
+		this.origin = _sourcePosition;
+		this.localVariableDeclarationEntities = new LinkedList();
+		this.localVariableDeclarationOrAssignedEntities = new LinkedList();
 		this.fieldVariableEntities = new LinkedList();
 		this.inheritedVariableEntities = new LinkedList();
 		this.parameterVariableEntities = new LinkedList();
 		this.usedVariableEntities = new LinkedList();
 	}
-	
+
+	public void run() {
+		this.collectFieldVariables();
+		this.collectParameters();
+		this.collectLocalVariables();
+
+		TypeDeclaration td = this.getTypeDeclaration(this.methodDeclaration);
+		if (td instanceof ClassOrInterfaceDeclaration) {
+			ClassOrInterfaceDeclaration classOrInterfaceDeclaration = (ClassOrInterfaceDeclaration) td;
+			ResolvedReferenceTypeDeclaration resolvedReferenceTypeDeclaration = JSSConfigurator.getInstance().getJpf()
+					.getTypeDeclaration(classOrInterfaceDeclaration);
+			this.collectInheritedVariables(resolvedReferenceTypeDeclaration, 0);
+		}
+	}
+
 	public void collectParameters() {
-		for(Parameter parameter:this.methodDeclaration.getParameters()) {
+		for (Parameter parameter : this.methodDeclaration.getParameters()) {
 			ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().convertToUsage(parameter.getType());
 			TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-			
+
 			SourcePosition sourcePosition = null;
-			if(parameter.getBegin().isPresent() && parameter.getBegin().get().isBefore(origin)) {
+			if (parameter.getBegin().isPresent() && parameter.getBegin().get().isBefore(origin)) {
 				sourcePosition = new SourcePosition(parameter.getBegin().get());
 				VariableEntity variableEntity = new VariableEntity(typeDescriptor.getTypeQualifiedName(),
-						parameter.getName().getIdentifier(),
-						VariableEntityCategory.PARAMETER, 
-						VariableLocationCategory.PARAMETER_DECLARATION,
-						sourcePosition); 
+						parameter.getName().getIdentifier(), VariableEntityCategory.PARAMETER,
+						VariableLocationCategory.PARAMETER_DECLARATION, sourcePosition);
 				this.parameterVariableEntities.add(variableEntity);
+				System.out.println(variableEntity);
 			}
 		}
 	}
-	
-	public void collectInheritedVariables(ResolvedReferenceTypeDeclaration resolvedReferenceTypeDeclaration){
-		ArrayList<VariableEntity> classFieldVariableEntities = new ArrayList();
-		for(ResolvedReferenceType rrt:resolvedReferenceTypeDeclaration.getAncestors()) {
+
+	private TypeDeclaration getTypeDeclaration(MethodDeclaration md) {
+		Node parent = this.methodDeclaration;
+		while (parent != null && !(parent instanceof TypeDeclaration)) {
+			parent = parent.getParentNode().get();
+		}
+		if (parent instanceof TypeDeclaration) {
+			return (TypeDeclaration) parent;
+		} else
+			return null;
+	}
+
+	public void collectFieldVariables() {
+
+		// Step-1: from method declaration collect Type Declaration
+		TypeDeclaration td = this.getTypeDeclaration(this.methodDeclaration);
+		// Step-2: collect field variables
+		if (td != null) {
+
+			List<BodyDeclaration> bdList = td.getMembers();
+			for (BodyDeclaration bd : bdList) {
+				if (bd instanceof FieldDeclaration) {
+					FieldDeclaration fd = (FieldDeclaration) bd;
+					for (VariableDeclarator vd : fd.getVariables()) {
+
+						String identifier = vd.getName().getIdentifier();
+						SourcePosition sourcePosition = null;
+						ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().convertToUsage(vd.getType());
+						TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
+
+						if (vd.getBegin().isPresent()) {
+							sourcePosition = new SourcePosition(vd.getBegin().get());
+						}
+						VariableEntity variableEntity = new VariableEntity(typeDescriptor.getTypeQualifiedName(),
+								identifier, VariableEntityCategory.FIELD, VariableLocationCategory.FIELD_DECLARATION,
+								sourcePosition);
+						fieldVariableEntities.add(variableEntity);
+						System.out.println(variableEntity);
+					}
+				}
+			}
+		}
+	}
+
+	public void collectLocalVariables() {
+		// collect variables that appear in the method body
+		this.methodDeclaration.accept(this, null);
+		
+		Collections.reverse(this.localVariableDeclarationEntities);
+		Collections.reverse(this.localVariableDeclarationOrAssignedEntities);
+	}
+
+	public void collectInheritedVariables(ResolvedReferenceTypeDeclaration resolvedReferenceTypeDeclaration,
+			int inheritanceDepth) {
+		for (ResolvedReferenceType rrt : resolvedReferenceTypeDeclaration.getAncestors()) {
 			ResolvedReferenceTypeDeclaration rrtd = rrt.getTypeDeclaration();
-			if(rrtd.isClass()) {
-				for(ResolvedFieldDeclaration rfd:rrtd.getDeclaredFields()) {
-					if(rfd.accessSpecifier()==AccessSpecifier.PUBLIC||rfd.accessSpecifier()==AccessSpecifier.PROTECTED) {
+			if (rrtd.isClass()) {
+
+				// Step-1: collect field variable entites
+				ArrayList<VariableEntity> classFieldVariableEntities = new ArrayList();
+				for (ResolvedFieldDeclaration rfd : rrtd.getDeclaredFields()) {
+					if (rfd.accessSpecifier() == AccessSpecifier.PUBLIC
+							|| rfd.accessSpecifier() == AccessSpecifier.PROTECTED) {
 						TypeDescriptor typeDescriptor = new TypeDescriptor(rfd.getType());
 						VariableEntity variableEntity = new VariableEntity(typeDescriptor.getTypeQualifiedName(),
-										rfd.getName(),
-										VariableEntityCategory.INHERITED_FIELD, 
-										VariableLocationCategory.FIELD_DECLARATION, 
-										null); 
+								rfd.getName(), VariableEntityCategory.INHERITED_FIELD,
+								VariableLocationCategory.FIELD_DECLARATION, null);
+						variableEntity.setInheritanceDepth(inheritanceDepth);
 						classFieldVariableEntities.add(variableEntity);
 					}
 				}
-				if(classFieldVariableEntities.size()>0) {
-					Collections.reverse(classFieldVariableEntities);
+
+				// Step-2: add field variable entities
+				if (classFieldVariableEntities.size() > 0) {
 					this.inheritedVariableEntities.addAll(classFieldVariableEntities);
 				}
+
+				// Step-3: collect parent class inherited field variables
+				this.collectInheritedVariables(rrtd, (inheritanceDepth + 1));
 			}
 		}
 	}
+
 	@Override
 	public void visit(VariableDeclarationExpr n, Void arg) {
 		// TODO Auto-generated method stub
@@ -108,19 +188,18 @@ public class SimpleNameCollector extends VoidVisitorAdapter<Void>{
 		// TODO Auto-generated method stub
 		super.visit(variableDeclarator, arg);
 		String identifier = variableDeclarator.getName().getIdentifier();
-		
+
 		SourcePosition sourcePosition = null;
 		ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().convertToUsage(variableDeclarator.getType());
 		TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-		
-		if(variableDeclarator.getBegin().isPresent() && variableDeclarator.getBegin().get().isBefore(origin)) {
+
+		if (variableDeclarator.getBegin().isPresent() && variableDeclarator.getBegin().get().isBefore(origin)) {
 			sourcePosition = new SourcePosition(variableDeclarator.getBegin().get());
-			VariableEntity variableEntity = new VariableEntity(typeDescriptor.getTypeQualifiedName(),
-							identifier,
-							VariableEntityCategory.LOCAL, 
-							VariableLocationCategory.LOCAL_DECLARATION, 
-							sourcePosition); 
-			localVariableEntities.add(variableEntity);
+			VariableEntity variableEntity = new VariableEntity(typeDescriptor.getTypeQualifiedName(), identifier,
+					VariableEntityCategory.LOCAL, VariableLocationCategory.LOCAL_DECLARATION, sourcePosition);
+			this.localVariableDeclarationEntities.add(variableEntity);
+			this.localVariableDeclarationOrAssignedEntities.add(variableEntity);
+			System.out.println(variableEntity);
 		}
 	}
 
@@ -131,24 +210,29 @@ public class SimpleNameCollector extends VoidVisitorAdapter<Void>{
 
 		SourcePosition sourcePosition = null;
 		SimpleName simpleName = n.getName();
-		if(simpleName.getBegin().isPresent() && simpleName.getBegin().get().isBefore(origin)) {
+		if (simpleName.getBegin().isPresent() && simpleName.getBegin().get().isBefore(origin)) {
 			sourcePosition = new SourcePosition(simpleName.getBegin().get());
-			SymbolReference<? extends ResolvedValueDeclaration> srResolvedvalueDeclaration = JSSConfigurator.getInstance().getJpf().solve(simpleName);
-			if(srResolvedvalueDeclaration.isSolved()) {
-				ResolvedValueDeclaration resolvedValueDeclaration = srResolvedvalueDeclaration.getCorrespondingDeclaration();
+			SymbolReference<? extends ResolvedValueDeclaration> srResolvedvalueDeclaration = JSSConfigurator
+					.getInstance().getJpf().solve(simpleName);
+			if (srResolvedvalueDeclaration.isSolved()) {
+				ResolvedValueDeclaration resolvedValueDeclaration = srResolvedvalueDeclaration
+						.getCorrespondingDeclaration();
 				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedValueDeclaration.getType());
-				
-				if(n.getParentNode().isPresent() && n.getParentNode().get() instanceof AssignExpr &&
-					((AssignExpr)n.getParentNode().get()).getTarget()==n) {
-					
-					VariableEntity variableEntity = new VariableEntity(typeDescriptor.getTypeQualifiedName(),simpleName.getIdentifier(),
-							VariableEntityCategory.UNKNOWN, VariableLocationCategory.ASSIGNMENT, sourcePosition); 	
-					this.localVariableEntities.add(variableEntity);
-				}
-				else {
-					VariableEntity variableEntity = new VariableEntity(typeDescriptor.getTypeQualifiedName(),simpleName.getIdentifier(),
-							VariableEntityCategory.UNKNOWN, VariableLocationCategory.NAME_EXPR, sourcePosition); 	
+
+				if (n.getParentNode().isPresent() && n.getParentNode().get() instanceof AssignExpr
+						&& ((AssignExpr) n.getParentNode().get()).getTarget() == n) {
+
+					VariableEntity variableEntity = new VariableEntity(typeDescriptor.getTypeQualifiedName(),
+							simpleName.getIdentifier(), VariableEntityCategory.UNKNOWN,
+							VariableLocationCategory.ASSIGNMENT, sourcePosition);
+					this.localVariableDeclarationOrAssignedEntities.add(variableEntity);
+					System.out.println(variableEntity);
+				} else {
+					VariableEntity variableEntity = new VariableEntity(typeDescriptor.getTypeQualifiedName(),
+							simpleName.getIdentifier(), VariableEntityCategory.UNKNOWN,
+							VariableLocationCategory.NAME_EXPR, sourcePosition);
 					this.usedVariableEntities.add(variableEntity);
+					System.out.println(variableEntity);
 				}
 			}
 		}
@@ -157,54 +241,31 @@ public class SimpleNameCollector extends VoidVisitorAdapter<Void>{
 	@Override
 	public void visit(AssignExpr n, Void arg) {
 		// TODO Auto-generated method stub
-		System.out.println("Asignment: "+n);		
 		super.visit(n, arg);
 	}
 
-	public void collectFieldVariables() {
-		
-		//Step-1: from method declaration collect typedeclaration
-		Node parent = this.methodDeclaration;
-		while(parent!=null && !(parent instanceof TypeDeclaration)) {
-			parent = parent.getParentNode().get();
-		}
-		
-		//Step-2: collect field variables
-		if(parent!=null && parent instanceof TypeDeclaration) {
-			TypeDeclaration td = (TypeDeclaration)parent;
-			
-			List<BodyDeclaration> bdList = td.getMembers();
-			for(BodyDeclaration bd:bdList) {
-				if(bd instanceof FieldDeclaration) {
-					FieldDeclaration fd =(FieldDeclaration)bd;
-					for(VariableDeclarator vd:fd.getVariables()) {
-						
-						String identifier = vd.getName().getIdentifier();
-						SourcePosition sourcePosition = null;
-						ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().convertToUsage(vd.getType());
-						TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-					
-						if(vd.getBegin().isPresent()) {
-							sourcePosition = new SourcePosition(vd.getBegin().get());
-						}
-						VariableEntity variableEntity = new VariableEntity(typeDescriptor.getTypeQualifiedName(),identifier,
-							VariableEntityCategory.FIELD, VariableLocationCategory.FIELD_DECLARATION,sourcePosition); 
-						fieldVariableEntities.add(variableEntity);
-					}
-				}
-			}
-		}
-	}
-	public void collectLocalVariables() {
-		//collect variables that appear in the method body
-		this.methodDeclaration.accept(this, null);		
-	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 	}
 
-	public List<VariableEntity> getLocalVariableEntities() {
-		return localVariableEntities;
+	public SourcePosition getOrigin() {
+		return origin;
+	}
+
+	public MethodDeclaration getMethodDeclaration() {
+		return methodDeclaration;
+	}
+
+	public List<VariableEntity> getUsedVariableEntities() {
+		return usedVariableEntities;
+	}
+
+	public List<VariableEntity> getLocalVariableDeclarationEntities() {
+		return localVariableDeclarationEntities;
+	}
+
+	public List<VariableEntity> getLocalVariableDeclarationOrAssignedEntities() {
+		return localVariableDeclarationOrAssignedEntities;
 	}
 
 	public List<VariableEntity> getFieldVariableEntities() {

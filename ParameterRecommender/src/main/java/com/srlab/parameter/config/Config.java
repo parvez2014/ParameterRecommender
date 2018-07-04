@@ -4,9 +4,9 @@ import java.io.File;
 
 public class Config {
 
-	public static final String ROOT_PATH = "/home/parvez/research/historic_evaluation/historic_evaluation_workspace";//"E:\\research\\parameter_recommendation";
+	public static final String ROOT_PATH = "/home/parvez/research/historic_evaluation/repositories";//"E:\\research\\parameter_recommendation";
 	
-	public static final String REPOSITORY_NAME = "Test"; 
+	public static final String REPOSITORY_NAME = "jhotdraw"; 
 	public static final String REPOSITORY_PATH = ROOT_PATH + File.separator + REPOSITORY_NAME;
 	public static final String REPOSITORY_REVISION_PATH = ROOT_PATH + File.separator + REPOSITORY_NAME + "_revisions";
 	public static final String EXTERNAL_DEPENDENCY_PATH = ROOT_PATH + File.separator+ REPOSITORY_NAME + "_dependencies";

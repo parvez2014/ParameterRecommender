@@ -39,19 +39,21 @@ public class SimpleNameCollectorDriver {
 			CompilationUnit cu;
 			try {
 				cu = JavaParser.parse(new FileInputStream(file));
+				
 				for(TypeDeclaration typeDeclaration:cu.getTypes()) {
 					for(Object obj:typeDeclaration.getMethods()) {
 						if(obj instanceof MethodDeclaration) {
 							MethodDeclaration md = (MethodDeclaration)obj;
-							System.out.println("Method m: "+md.getDeclarationAsString());
+							/*System.out.println("Method m: "+md.getDeclarationAsString());
 							SimpleNameCollector sn = new SimpleNameCollector(md,null);
 							//sn.collectParameters();
 							sn.collectLocalVariables();
 							for(VariableEntity ve: sn.getParameterVariableEntities()) {
 								System.out.println(ve);
-							}
+							}*/
+							md.accept(new SimpleNameRecommendationTestVisitor(cu,""),null);
 						}
-					}		
+					}	
 				}
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
@@ -65,9 +67,9 @@ public class SimpleNameCollectorDriver {
 	}
 	
 	public static void main(String args[]) {
-		//SimpleNameCollectorDriver parameterCollector = new SimpleNameCollectorDriver(Config.REPOSITORY_PATH);
-		//parameterCollector.run();
-		ArrayList<Integer> list = new ArrayList();
+		SimpleNameCollectorDriver parameterCollector = new SimpleNameCollectorDriver(Config.REPOSITORY_PATH);
+		parameterCollector.run();
+		/*ArrayList<Integer> list = new ArrayList();
 		list.add(5);
 		list.add(3);
 		list.add(2);
@@ -79,6 +81,6 @@ public class SimpleNameCollectorDriver {
 			}
 		});
 		
-		System.out.println(list);
+		System.out.println(list);*/
 	}
 }
