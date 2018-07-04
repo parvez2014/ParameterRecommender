@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -63,7 +65,20 @@ public class SimpleNameCollectorDriver {
 	}
 	
 	public static void main(String args[]) {
-		SimpleNameCollectorDriver parameterCollector = new SimpleNameCollectorDriver(Config.REPOSITORY_PATH);
-		parameterCollector.run();
+		//SimpleNameCollectorDriver parameterCollector = new SimpleNameCollectorDriver(Config.REPOSITORY_PATH);
+		//parameterCollector.run();
+		ArrayList<Integer> list = new ArrayList();
+		list.add(5);
+		list.add(3);
+		list.add(2);
+		Collections.sort(list,new Comparator<Integer>(){
+
+			public int compare(Integer o1, Integer o2) {
+				// TODO Auto-generated method stub
+			return o2-o1;	
+			}
+		});
+		
+		System.out.println(list);
 	}
 }

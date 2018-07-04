@@ -6,26 +6,24 @@ public class VariableEntity {
 	/**
      * Variable type. Used to choose the best guess based on scope (Local beats instance beats inherited).
      */
+	
+	private  String name;
     private  String qualifiedTypeName;
-    private  String name;
     private  VariableEntityCategory entityCategory;
     private  VariableLocationCategory locationCategory;
-    
-    public SourcePosition sourcePosition;
+    private SourcePosition sourcePosition;
     
     private  boolean autoboxingMatch;
     private  boolean alreadyMatched;
     private  int positionScore;
     private int inheritanceDepth;
 	
-    
-    
     public VariableEntity(String qualifiedTypeName, String name, VariableEntityCategory _entityCategory,
     		VariableLocationCategory _locationCategory,
 			SourcePosition sourcePosition) {
 		super();
-		this.qualifiedTypeName = qualifiedTypeName;
 		this.name = name;
+		this.qualifiedTypeName = qualifiedTypeName;
 		this.locationCategory = _locationCategory;
 		this.entityCategory  = _entityCategory;
 		this.sourcePosition = sourcePosition;

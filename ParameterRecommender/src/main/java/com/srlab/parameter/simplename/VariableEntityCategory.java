@@ -1,5 +1,5 @@
 package com.srlab.parameter.simplename;
 
-public enum VariableEntityCategory {
-	LOCAL, FIELD, INHERITED_FIELD, PARAMETER;
+public enum VariableEntityCategory { //a variable can be one of the following types 
+	LOCAL, FIELD, INHERITED_FIELD, PARAMETER, UNKNOWN;
 }
