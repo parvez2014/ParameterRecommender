@@ -17,7 +17,7 @@ public class BooleanLiteralContent extends ParameterContent{
 	public String getStringRep(BooleanLiteralExpr booleanLiteralExpr) {
 		return booleanLiteralExpr.toString();
 	}
-	
+
 	public String getAbsStringRep() {
 		return absStringRep;
 	}

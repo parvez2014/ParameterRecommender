@@ -31,6 +31,7 @@ import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.config.Config;
+import com.srlab.parameter.node.ParameterContent;
 
 
 public class ParameterCategoryVisitor extends VoidVisitorAdapter<Void>{
@@ -67,9 +68,15 @@ public class ParameterCategoryVisitor extends VoidVisitorAdapter<Void>{
 					String methodQualifiedName = resolvedMethodDeclaration.getCorrespondingDeclaration().getQualifiedName();
 					
 					//if this is a framework method call and the method has parameter we process it
-					if(Config.isInteresting(methodQualifiedName)&&m.getArguments().size()>0) {
+					if(m.getArguments().size()>0) {
 						for(int i=0;i<m.getArguments().size();i++) {
 							parameterCategorizer.add(m, m.getArguments().get(i),i);
+						}
+						
+						for(Expression expression:m.getArguments()) {
+							ParameterContent parameterContent = new ParameterContent();
+							System.out.println("+++++++++++++++++===Expression: "+expression+"  Parameter Content: "+parameterContent.getStringRep(expression));
+							
 						}
 					}
 				}

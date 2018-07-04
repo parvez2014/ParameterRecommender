@@ -16,10 +16,6 @@ public class StringLiteralContent extends ParameterContent{
 		name = sl.toString();
 		absStringRep = this.getStringRep(sl);
 	}
-	private String getStringRep(StringLiteralExpr sl) {
-		// TODO Auto-generated method stub
-		return sl.toString();
-	}
 	public String getName() {
 		return name;
 	}

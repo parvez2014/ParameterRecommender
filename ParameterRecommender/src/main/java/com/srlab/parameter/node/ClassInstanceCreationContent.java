@@ -14,6 +14,8 @@ import com.srlab.parameter.binding.TypeDescriptor;
 
 public class ClassInstanceCreationContent extends ParameterContent{
 	private String name;
+	private String scope;
+	private String scopeTypeQualifiedName;
 	private String typeQualifiedName;
 	private String absStringRep;
 	public ClassInstanceCreationContent(MethodCallExpr mi, MethodDeclaration md, ObjectCreationExpr objectCreationExpression){
@@ -21,30 +23,53 @@ public class ClassInstanceCreationContent extends ParameterContent{
 		this.typeQualifiedName = null;
 		this.name = objectCreationExpression.toString();
 		this.absStringRep = this.getStringRep(objectCreationExpression);	
+		
+		ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpression.getType());
+		TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
+		this.typeQualifiedName = typeDescriptor.getTypeQualifiedName();
+		
 		if(objectCreationExpression.getScope().isPresent()) {
 			Expression expression = objectCreationExpression.getScope().get();
 			JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
 			SymbolReference<? extends ResolvedValueDeclaration>  srResolvedValueDeclaration  = jpf.solve(expression);
 			if(srResolvedValueDeclaration.isSolved()) {
 				ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
-				ResolvedType resolvedType = resolvedValueDeclaration.getType();
-				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-				this.typeQualifiedName = typeDescriptor.getName();
+				resolvedType = resolvedValueDeclaration.getType();
+				typeDescriptor = new TypeDescriptor(resolvedType);
+				this.scope = objectCreationExpression.getScope().get().toString();
+				this.scopeTypeQualifiedName = typeDescriptor.getTypeQualifiedName();
 			}
+		}
+		else {
+			this.scope = null;
+			this.scopeTypeQualifiedName =null;
 		}
 		this.absStringRep = "new "+ typeQualifiedName+"( )";
 	}
-	private String getStringRep(ObjectCreationExpr objectCreationExpression) {
-		// TODO Auto-generated method stub
-		return this.absStringRep;
-	}
+	
 	public String getName() {
 		return name;
 	}
+
+	public String getScope() {
+		return scope;
+	}
+
+	public String getScopeTypeQualifiedName() {
+		return scopeTypeQualifiedName;
+	}
+
+	public String getTypeQualifiedName() {
+		return typeQualifiedName;
+	}
+
 	public String getAbsStringRep() {
 		return absStringRep;
 	}
+
 	public void print(){
-		System.out.print("Name: "+this.getName()+" AbsStrRep: "+this.getAbsStringRep());
+		System.out.print("ClassInstanceCreationContent [name=" + name + ", scope=" + scope + ", scopeTypeQualifiedName="
+				+ scopeTypeQualifiedName + ", typeQualifiedName=" + typeQualifiedName + ", absStringRep=" + absStringRep
+				+ "]");
 	}
 }

@@ -51,6 +51,7 @@ public class SimpleNameCollectorDriver {
 							for(VariableEntity ve: sn.getParameterVariableEntities()) {
 								System.out.println(ve);
 							}*/
+							
 							md.accept(new SimpleNameRecommendationTestVisitor(cu,""),null);
 						}
 					}	

@@ -18,10 +18,6 @@ public class CharLiteralContent extends ParameterContent{
 		this.absStringRep = this.getStringRep(cl);
 	}
 	
-	public String getStringRep(CharLiteralExpr expr) {
-		return expr.toString();
-	}
-	
 	public String getName() {
 		return name;
 	}

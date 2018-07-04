@@ -3,6 +3,7 @@ package com.srlab.parameter.node;
 import java.util.ArrayList;
 
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.Name;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
@@ -12,46 +13,42 @@ import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.binding.TypeDescriptor;
 
-public class QualifiedNameContent extends ParameterContent{
-	
+public class QualifiedNameContent extends ParameterContent {
+
+	private String name;
+	private String identifier;
 	private String typeQualifiedName;
-	private String qualifier;
-	String name;
-	String identifier;
-	String absStringRep;
-	ArrayList<String> receiverTypeHierarchy;
-	public QualifiedNameContent(MethodCallExpr mi, MethodDeclaration md, Name qn){
-		super(qn);
-		this.typeQualifiedName =null;
-		this.qualifier=null;
-		this.qualifier="";
-		
-		if(qn.getQualifier().isPresent()) {
-			Name name = qn.getQualifier().get();
-			this.qualifier = qn.getQualifier().get().toString();
+	private String scope;
+	private String scopeTypeQualifiedName;
+	private String absStringRep;
+
+	public QualifiedNameContent(MethodCallExpr mi, MethodDeclaration md, FieldAccessExpr fieldAccessExpr) {
+		super(fieldAccessExpr);
+		this.name = fieldAccessExpr.toString();
+		this.scope = null;
+		this.scopeTypeQualifiedName = null;
+
+		JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
+		SymbolReference<? extends ResolvedValueDeclaration> srResolvedValueDeclaration = jpf
+				.solve(fieldAccessExpr.getScope());
+		if (srResolvedValueDeclaration.isSolved()) {
+			ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration
+					.getCorrespondingDeclaration();
+			ResolvedType resolvedType = resolvedValueDeclaration.getType();
+			TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
+			this.scope = fieldAccessExpr.getScope().toString();
+			this.scopeTypeQualifiedName = typeDescriptor.getTypeQualifiedName();
 		}
 		
+		this.identifier = fieldAccessExpr.getName().getIdentifier();
+		srResolvedValueDeclaration = JSSConfigurator.getInstance().getJpf().solve(fieldAccessExpr.getName());
+		ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
+		ResolvedType resolvedType = resolvedValueDeclaration.getType();
+		TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
+		this.typeQualifiedName = typeDescriptor.getTypeQualifiedName();
 		
-		//if(qn.getQualifier()!=null && qn.getQualifier().resolveTypeBinding()!=null){
-		//	this.typeQualifiedName = qn.getQualifier().resolveTypeBinding().getQualifiedName();
-		//	this.qualifier = qn.getQualifier().toString();
-		//}
-		
-		this.name = qn.toString();
-		this.identifier = qn.getIdentifier();
-		this.absStringRep = this.getStringRep(qn);
-		//this.receiverTypeHierarchy = new ArrayList();
-		//OverrideDetector.getInstance().collectOverrideHierarchy(qn.getQualifier().resolveTypeBinding(),this.receiverTypeHierarchy);	
-		//this.processReceiver(mi,md,qn.getQualifier());
-	}
+		this.absStringRep = this.getStringRep(fieldAccessExpr); 
 
-	private String getStringRep(Name qn) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public String getTypeQualifiedName() {
-		return typeQualifiedName;
 	}
 
 	public String getName() {
@@ -62,19 +59,25 @@ public class QualifiedNameContent extends ParameterContent{
 		return identifier;
 	}
 
+	public String getTypeQualifiedName() {
+		return typeQualifiedName;
+	}
+
+	public String getScope() {
+		return scope;
+	}
+
+	public String getScopeTypeQualifiedName() {
+		return scopeTypeQualifiedName;
+	}
+
 	public String getAbsStringRep() {
 		return absStringRep;
 	}
 
-	public ArrayList<String> getReceiverTypeHierarchy() {
-		return receiverTypeHierarchy;
-	}
-
-	public String getQualifier() {
-		return qualifier;
-	}
-
-	public void print(){
-		System.out.println("Name: "+this.getName()+" Identifier: "+this.getIdentifier()+" Qualifier:  "+this.getQualifier()+" AbsStringRep: "+this.getAbsStringRep());
+	public void print() {
+		System.out.println("QualifiedNameContent [name=" + name + ", identifier=" + identifier + ", typeQualifiedName="
+				+ typeQualifiedName + ", scope=" + scope + ", scopeTypeQualifiedName=" + scopeTypeQualifiedName
+				+ ", absStringRep=" + absStringRep + "]");
 	}
 }

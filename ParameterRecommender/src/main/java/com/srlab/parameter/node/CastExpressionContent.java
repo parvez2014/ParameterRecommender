@@ -5,7 +5,9 @@ import com.github.javaparser.ast.expr.CastExpr;
 import com.github.javaparser.ast.expr.CharLiteralExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.binding.TypeDescriptor;
 
@@ -14,42 +16,40 @@ public class CastExpressionContent extends ParameterContent{
 	private String absStringRep;
 	private String castQualifier;
 	private String castTypeQualifiedName;
+	private String expressionTypeQualifiedName;
 	
 	public CastExpressionContent(MethodCallExpr mi, MethodDeclaration md, CastExpr ce){
 		super(ce);
 		this.name = ce.toString();
-		this.absStringRep = this.getStringRep(ce);
 		this.castQualifier = null;
 		this.castTypeQualifiedName = null;
+		this.expressionTypeQualifiedName = null;
 		
-		if(ce.getType()!=null) {
-			this.castQualifier = ce.getType().toString();
-			ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().convert(ce.getType(),ce);
-			TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-			this.castTypeQualifiedName = typeDescriptor.getName();
-		}
-		else {
-			this.castQualifier = null;
-			this.castTypeQualifiedName = null;
-		}
+		this.absStringRep = this.getStringRep(ce);
+		this.castQualifier = ce.getType().toString();
 		
-		if(ce.getExpression()!=null) {
-			Expression expression = ce.getExpression();
-			this.absStringRep = "("+this.castTypeQualifiedName+")"+this.getStringRep(expression);
-		}
+		ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(ce.getType());
+		TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
+		this.castTypeQualifiedName = typeDescriptor.getTypeQualifiedName();
+		
+		Expression expression = ce.getExpression();
+		SymbolReference<? extends ResolvedValueDeclaration> srResolvedvalueDeclaration = JSSConfigurator.getInstance().getJpf().solve(expression);
+		if(srResolvedvalueDeclaration.isSolved()) {
+			typeDescriptor = new TypeDescriptor(srResolvedvalueDeclaration.getCorrespondingDeclaration().getType());
+			this.expressionTypeQualifiedName = typeDescriptor.getTypeQualifiedName();
+		}	
 	}
 	
 	public String getName() {
 		return name;
 	}
-	
-	
 	public String getAbsStringRep() {
 		return absStringRep;
 	}
 	public void print(){
-		System.out.print("Name: "+this.getName());
-		System.out.print("Receiver: "+this.getStringReceiver());
-		System.out.println("Abstract String Rep: "+this.getAbsStringRep());
+
+		System.out.println("CastExpressionContent [name=" + name + ", absStringRep=" + absStringRep + ", castQualifier="
+				+ castQualifier + ", castTypeQualifiedName=" + castTypeQualifiedName + ", expressionTypeQualifiedName="
+				+ expressionTypeQualifiedName + "]");
 	}
 }

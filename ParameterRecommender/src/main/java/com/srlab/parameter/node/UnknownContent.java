@@ -26,7 +26,7 @@ public class UnknownContent extends ParameterContent{
 			ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
 			ResolvedType resolvedType = resolvedValueDeclaration.getType();
 			TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-			this.typeQualifiedName = typeDescriptor.getName();
+			this.typeQualifiedName = typeDescriptor.getTypeQualifiedName();
 		}
 	}
 	public String getName() {
@@ -35,9 +35,6 @@ public class UnknownContent extends ParameterContent{
 	
 	public String getTypeQualifiedName() {
 		return typeQualifiedName;
-	}
-	public String getAbsStringRep() {
-		return absStringRep;
 	}
 	public void print(){
 		System.out.print("Name: "+this.getName()+" TypeQualifiedName: "+this.getTypeQualifiedName()+ " Abstract String Rep: "+this.getAbsStringRep());

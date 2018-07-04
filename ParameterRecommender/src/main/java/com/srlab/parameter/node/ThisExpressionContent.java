@@ -2,7 +2,10 @@ package com.srlab.parameter.node;
 
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.CharLiteralExpr;
+import com.github.javaparser.ast.expr.ClassExpr;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ThisExpr;
 import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
@@ -30,7 +33,7 @@ public class ThisExpressionContent extends ParameterContent{
 				ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
 				ResolvedType resolvedType = resolvedValueDeclaration.getType();
 				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-				this.classQualifiedName = typeDescriptor.getName();
+				this.classQualifiedName = typeDescriptor.getTypeQualifiedName();
 			}
 		}
 		else {
@@ -41,7 +44,7 @@ public class ThisExpressionContent extends ParameterContent{
 		SymbolReference<? extends ResolvedTypeDeclaration> srResolvedTypeDeclaration  = jpf.solve(thisExpr);
 		if(srResolvedTypeDeclaration.isSolved()) {
 			ResolvedTypeDeclaration resolvedTypeDeclaration = srResolvedTypeDeclaration.getCorrespondingDeclaration();
-			this.classQualifiedName = resolvedTypeDeclaration.getQualifiedName();
+			this.thisQualifiedName = resolvedTypeDeclaration.getQualifiedName();
 		}
 	
 		if(this.classQualifier!=null)
@@ -50,10 +53,7 @@ public class ThisExpressionContent extends ParameterContent{
 			this.absStringRep = "this";		
 		}
 	}
-	private String getStringRep(ThisExpr thisExpr) {
-		// TODO Auto-generated method stub
-		return this.absStringRep;
-	}
+	
 	public String getName() {
 		return name;
 	}

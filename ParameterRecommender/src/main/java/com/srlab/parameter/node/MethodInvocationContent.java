@@ -14,63 +14,56 @@ import com.srlab.parameter.binding.TypeDescriptor;
 
 public class MethodInvocationContent extends ParameterContent{
 	
+	private String name;
 	private String methodName;
-	private String stringReceiver;
-	private String receiverQualifiedName;
+	private String receiver;
+	private String receiverTypeQualifiedName;
 	private String absStringRep;
-	private ArrayList<String> receiverTypeHierarchy;
 	
-	public MethodInvocationContent(MethodCallExpr mi, MethodDeclaration md){
+	public MethodInvocationContent(MethodCallExpr mmi, MethodDeclaration md, MethodCallExpr mi){
 		
 		super(mi);
-		this.stringReceiver = null;
-		this.receiverQualifiedName = null;
-		this.methodName=null;
-		this.absStringRep = null;		
-		
+		this.name = mi.toString();
 		this.methodName = mi.getName().getIdentifier();
+		this.receiver = null;
+		this.receiverTypeQualifiedName = null;
+		this.absStringRep = null;		
+
 		if(mi.getScope().isPresent()) {
-			this.stringReceiver = mi.getScope().toString();
+			this.receiver = mi.getScope().toString();
 			JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
 			SymbolReference<? extends ResolvedValueDeclaration> srResolvedValueDeclaration  = jpf.solve(mi.getScope().get());
 			if(srResolvedValueDeclaration.isSolved()) {
 				ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
 				ResolvedType resolvedType = resolvedValueDeclaration.getType();
 				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-				this.receiverQualifiedName = typeDescriptor.getName(resolvedType);
-				this.absStringRep = null;
+				this.receiverTypeQualifiedName = typeDescriptor.getTypeQualifiedName();
 			}
 		}
-		else {
-			this.stringReceiver = null;
-			this.receiverQualifiedName = null;
-			this.absStringRep = this.methodName;
-		}
 	}
-	
+
+	public String getName() {
+		return name;
+	}
+
 	public String getMethodName() {
 		return methodName;
 	}
 
-	public String getStringReceiver() {
-		return stringReceiver;
+	public String getReceiver() {
+		return receiver;
 	}
 
-
-	public String getReceiverQualifiedName() {
-		return receiverQualifiedName;
+	public String getReceiverTypeQualifiedName() {
+		return receiverTypeQualifiedName;
 	}
 
 	public String getAbsStringRep() {
 		return absStringRep;
 	}
-
-	public ArrayList<String> getReceiverTypeHierarchy() {
-		return receiverTypeHierarchy;
-	}
-
-	public void print(){
-		super.print();
-		System.out.println("METHOD CALL: Method Name: "+this.getMethodName()+" String Receiver: "+this.getStringReceiver()+" Type Qualified Name: "+this.getReceiverQualifiedName());
+	
+	public void print() {
+		System.out.println("MethodInvocationContent [name=" + name + ", methodName=" + methodName + ", receiver=" + receiver
+				+ ", receiverTypeQualifiedName=" + receiverTypeQualifiedName + ", absStringRep=" + absStringRep + "]");
 	}
 }
