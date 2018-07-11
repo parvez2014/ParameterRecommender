@@ -110,6 +110,106 @@ public class ParameterExpressionCategorizer {
 			this.hmParameterExpressionCounter.put(exp,0L);
 		}
 	}
+	
+	public static String getParameterExpressionType(Expression exp) {
+		if(exp instanceof AnnotationExpr){
+			return "AnnotationExpr";
+		}
+		else if(exp instanceof ArrayAccessExpr){
+			return "ArrayAccessExpr";
+		}
+		else if(exp instanceof ArrayCreationExpr){
+			return "ArrayCreationExpr";
+		}
+		else if(exp instanceof ArrayInitializerExpr){
+			return "AnnotationExpr";
+		}
+		else if(exp instanceof AssignExpr){
+			return "ArrayInitializerExpr";
+		}
+		else if(exp instanceof BinaryExpr){
+			return "BinaryExpr";
+		}
+		else if(exp instanceof CastExpr){
+			return "CastExpr";
+		}
+		else if(exp instanceof ClassExpr){
+			return "ClassExpr";
+		}
+		else if(exp instanceof ConditionalExpr){
+			return "ConditionalExpr";
+		}
+		else if(exp instanceof EnclosedExpr){
+			return "EnclosedExpr";
+		}
+		else if(exp instanceof FieldAccessExpr){
+			return "FieldAccessExpr";
+		}
+		else if(exp instanceof InstanceOfExpr){
+			return "InstanceOfExpr";
+		}
+		else if(exp instanceof LambdaExpr){
+			return "LambdaExpr";
+		}
+		else if(exp instanceof LiteralExpr){
+			if(exp instanceof BooleanLiteralExpr){
+				return "BooleanLiteralExpr";
+			}
+			else if(exp instanceof CharLiteralExpr){
+				return "CharLiteralExpr";
+			}
+			else if(exp instanceof DoubleLiteralExpr){
+				return "DoubleLiteralExpr";
+			}
+			else if(exp instanceof IntegerLiteralExpr){
+				return "IntegerLiteralExpr";
+			}
+			else if(exp instanceof LongLiteralExpr){
+				return "LongLiteralExpr";
+			}
+			else if(exp instanceof StringLiteralExpr){
+				return "StringLiteralExpr";
+			}
+			else if(exp instanceof CharLiteralExpr){
+				return "CharLiteralExpr";
+			}
+			else {
+				throw new RuntimeException("Cannot find the expression type of this argument: "+exp);
+			}
+		}
+		
+		else if(exp instanceof MethodCallExpr){
+			return "MethodCallExpr";
+		}
+		else if(exp instanceof MethodReferenceExpr){
+			return "MethodReferenceExpr";
+		}
+		else if(exp instanceof NameExpr){
+			return "NameExpr";
+		}
+		else if(exp instanceof ObjectCreationExpr){
+			return "ObjectCreationExpr";
+		}
+		else if(exp instanceof SuperExpr){
+			return "SuperExpr";
+		}
+		else if(exp instanceof ThisExpr){
+			return "ThisExpr";
+		}
+		else if(exp instanceof TypeExpr){
+			return "TypeExpr";
+		}
+		else if(exp instanceof UnaryExpr){
+			return "UnaryExpr";
+		}
+		else if(exp instanceof VariableDeclarationExpr){
+			return "VariableDeclarationExpr";
+		}
+		else {
+			throw new RuntimeException("Cannot find the expression type of this argument: "+exp);
+		}
+	}
+	
 	//node is the method call, exp represents the parameter and position represents parameter position
 	public void add(MethodCallExpr node, Expression exp, int position){
 		

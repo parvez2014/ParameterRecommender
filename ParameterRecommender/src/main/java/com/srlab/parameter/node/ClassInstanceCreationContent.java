@@ -17,9 +17,8 @@ public class ClassInstanceCreationContent extends ParameterContent{
 	private String scope;
 	private String scopeTypeQualifiedName;
 	private String typeQualifiedName;
-	private String absStringRep;
-	public ClassInstanceCreationContent(MethodCallExpr mi, MethodDeclaration md, ObjectCreationExpr objectCreationExpression){
-		super(mi);
+	public ClassInstanceCreationContent(ObjectCreationExpr objectCreationExpression){
+		super(objectCreationExpression);
 		this.typeQualifiedName = null;
 		this.name = objectCreationExpression.toString();
 		this.absStringRep = this.getStringRep(objectCreationExpression);	
@@ -38,9 +37,11 @@ public class ClassInstanceCreationContent extends ParameterContent{
 				typeDescriptor = new TypeDescriptor(resolvedType);
 				this.scope = objectCreationExpression.getScope().get().toString();
 				this.scopeTypeQualifiedName = typeDescriptor.getTypeQualifiedName();
+				this.parent = ParameterContent.get(objectCreationExpression.getScope().get());
 			}
 		}
 		else {
+			this.parent = null;
 			this.scope = null;
 			this.scopeTypeQualifiedName =null;
 		}
@@ -61,10 +62,6 @@ public class ClassInstanceCreationContent extends ParameterContent{
 
 	public String getTypeQualifiedName() {
 		return typeQualifiedName;
-	}
-
-	public String getAbsStringRep() {
-		return absStringRep;
 	}
 
 	public void print(){

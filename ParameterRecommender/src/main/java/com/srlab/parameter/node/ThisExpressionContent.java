@@ -21,7 +21,7 @@ public class ThisExpressionContent extends ParameterContent{
 	private String classQualifiedName;
 	private String thisQualifiedName;
 	private String absStringRep;
-	public ThisExpressionContent(MethodCallExpr mi, MethodDeclaration md, ThisExpr thisExpr){
+	public ThisExpressionContent(ThisExpr thisExpr){
 		super(thisExpr);
 		JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
 		name = thisExpr.toString();
@@ -35,10 +35,12 @@ public class ThisExpressionContent extends ParameterContent{
 				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 				this.classQualifiedName = typeDescriptor.getTypeQualifiedName();
 			}
+			this.parent = ParameterContent.get(thisExpr.getClassExpr().get());
 		}
 		else {
 			this.classQualifier = null;
 			this.classQualifiedName = null;
+			this.parent = null;
 		}
 		
 		SymbolReference<? extends ResolvedTypeDeclaration> srResolvedTypeDeclaration  = jpf.solve(thisExpr);

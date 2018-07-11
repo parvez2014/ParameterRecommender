@@ -58,7 +58,7 @@ public class ParameterCategoryVisitor extends VoidVisitorAdapter<Void>{
 	@Override
 	public void visit(MethodCallExpr m, Void arg) {
 		// TODO Auto-generated method stub
-		super.visit(m, arg);
+		super.visit(m, arg);System.out.println("MethodCallExpr: "+m);
 		try {
 			if(m.getScope().isPresent()) {
 				//resolved the method binding
@@ -74,8 +74,9 @@ public class ParameterCategoryVisitor extends VoidVisitorAdapter<Void>{
 						}
 						
 						for(Expression expression:m.getArguments()) {
-							ParameterContent parameterContent = new ParameterContent();
+							ParameterContent parameterContent = ParameterContent.get(expression);
 							System.out.println("+++++++++++++++++===Expression: "+expression+"  Parameter Content: "+parameterContent.getStringRep(expression));
+							System.out.println("Expression TYpe: "+parameterContent.getParameterExpressionType()+ "  Parameter Content: "+parameterContent.getAbsStringRep());
 							
 						}
 					}

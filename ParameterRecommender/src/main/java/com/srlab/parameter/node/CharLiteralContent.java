@@ -9,22 +9,26 @@ import com.github.javaparser.ast.expr.LiteralStringValueExpr;
 import com.github.javaparser.ast.expr.LongLiteralExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 
-public class CharLiteralContent extends ParameterContent{
+public class CharLiteralContent extends ParameterContent {
 	private String name;
-	private String absStringRep;
-	public CharLiteralContent(MethodCallExpr mi, MethodDeclaration md, CharLiteralExpr cl){
+
+	public CharLiteralContent(CharLiteralExpr cl) {
 		super(cl);
 		name = cl.toString();
 		this.absStringRep = this.getStringRep(cl);
+		this.partlyAbsStringRep = cl.toString();
+		this.parent = null;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
+
 	public String getAbsStringRep() {
 		return absStringRep;
 	}
-	public void print(){
-		System.out.print("Name: "+this.getName()+" Abstract String Rep: "+this.getAbsStringRep());
+
+	public void print() {
+		System.out.print("Name: " + this.getName() + " Abstract String Rep: " + this.getAbsStringRep());
 	}
 }

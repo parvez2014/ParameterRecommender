@@ -15,7 +15,6 @@ public class UnknownContent extends ParameterContent{
 	private String absStringRep;
 	private String typeQualifiedName;
 	public UnknownContent(MethodCallExpr mi, MethodDeclaration md, Expression expression){
-		super(expression);
 		name = expression.toString();
 		this.absStringRep ="unknown";
 		this.typeQualifiedName = null;

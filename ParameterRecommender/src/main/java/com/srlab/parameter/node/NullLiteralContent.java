@@ -8,11 +8,12 @@ import com.github.javaparser.ast.expr.NullLiteralExpr;
 
 public class NullLiteralContent extends ParameterContent{
 	private String name;
-	private String absStringRep;
-	public NullLiteralContent(MethodCallExpr mi, MethodDeclaration md, NullLiteralExpr nl){
+	public NullLiteralContent(NullLiteralExpr nl){
 		super(nl);
 		name = nl.toString();
 		this.absStringRep = this.getStringRep(nl);
+		this.partlyAbsStringRep = nl.toString();
+		this.parent = null;
 	}
 	public String getName() {
 		return name;

@@ -30,15 +30,14 @@ import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclar
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
-import com.sail.evaluatingevaluator.completioner.ModelEntry;
-import com.sail.evaluatingevaluator.completioner.Token;
 import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.config.Config;
+import com.srlab.parameter.node.ParameterContent;
 
 
 public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 
-	private List<ParameterDescriptor> parameterDescriptorList;
+	private List<ModelEntry> modelEntryList;
 	private String filePath;
 	private CompilationUnit cu;
 	private HashMap<String,String> hmKeyword;
@@ -48,7 +47,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 	public MethodCallExprVisitor(CompilationUnit _cu, String _path) {
 		// TODO Auto-generated constructor stub
 		this.cu = _cu;
-		this.parameterDescriptorList = new LinkedList();
+		this.modelEntryList = new LinkedList();
 		this.filePath = _path;
 		this.hmKeyword = new HashMap();
 		this.hmLineKeyword = new HashMap();
@@ -446,28 +445,13 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 			super.visit(m, arg);
 			if(m.getScope().isPresent()) {
 				try {					
-					SymbolReference<ResolvedMethodDeclaration> resolvedMethodDeclaration = JSSConfigurator.getInstance().getJpf().solve(m);
-					List<String> parameterList = new ArrayList();
-					//System.out.println("Number of Parameters: "+resolvedMethodDeclaration.getCorrespondingDeclaration().getNumberOfParams());
-					
-					for(int i=0;i<resolvedMethodDeclaration.getCorrespondingDeclaration().getNumberOfParams();i++) {
-						ResolvedType type = resolvedMethodDeclaration.getCorrespondingDeclaration().getParam(i).getType();
-						if(type.isPrimitive())
-							parameterList.add(type.asPrimitive().name());
-						else if(type.isReferenceType())
-							parameterList.add(type.asReferenceType().getQualifiedName());
-						else {
-							//System.out.println("Type: "+type);
-							throw new RuntimeException("Error in resolving parameter type");
-						}		
-					}
-					if(resolvedMethodDeclaration.isSolved() && resolvedMethodDeclaration.getCorrespondingDeclaration()!=null && Config.isInteresting(resolvedMethodDeclaration.getCorrespondingDeclaration().getQualifiedName())) {
-						//System.out.println("Binding Resolved");
-						if(Config.isInteresting(resolvedMethodDeclaration.getCorrespondingDeclaration().getQualifiedName())) {
+					SymbolReference<ResolvedMethodDeclaration> srResolvedMethodDeclaration = JSSConfigurator.getInstance().getJpf().solve(m);		
+					if(srResolvedMethodDeclaration.isSolved() && srResolvedMethodDeclaration.getCorrespondingDeclaration()!=null) {
+						ResolvedMethodDeclaration resolvedMethodDeclaration = srResolvedMethodDeclaration.getCorrespondingDeclaration();
+						
+						if(Config.isInteresting(resolvedMethodDeclaration.getQualifiedName())) {
 							
 							MethodDeclaration methodDeclaration = this.getMethodDeclarationContainer(m);	
-							
-							
 							//System.out.println("Parameters: "+parameterList);
 							if(methodDeclaration!=null && methodDeclaration.getBegin().isPresent() && m.getBegin().isPresent()) {
 								
@@ -481,31 +465,28 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 								
 								System.out.println("MethoDeclaration: Start"+methodDeclaration.getBegin().get() +"End: "+methodDeclaration.getEnd().get()+ "MethodCallExpr: "+m.getBegin().get());
 								*/
-								String source = FileUtils.readFileToString(new File(this.filePath));
+								
+								
+								/*String source = FileUtils.readFileToString(new File(this.filePath));
 								String text = this.collectSourceString(source,methodDeclaration.getBegin().get(),m.getBegin().get());
 								
 								List<Token> tokenList = this.tokenize(text);
-								//System.out.println("Prefix: \n"+text);
-								//for(Token token:tokenList) {
-								//	System.out.println("T: "+token.getToken());
-								//}
 								
 								String neighborList   = this.calcNeighbor(tokenList,tokenList.size()-1);
 								String lineContent    = this.getLineContent(tokenList, tokenList.size()-1);
 								
-								//System.out.println("Context: " + neighborList);
-								//System.out.println("Content: " + lineContent);
+								MethodCallEntity methodCallEntity = MethodCallEntity.get(m, resolvedMethodDeclaration, JSSConfigurator.getInstance().getJpf());
+								List<ParameterContent> parameterContentList = new ArrayList();
 								
-								
-								ParameterModelEntry modelEntry = new ParameterModelEntry(m.getBegin().get().line,
-									m.getName().getIdentifier(),
-									resolvedMethodDeclaration.getCorrespondingDeclaration().getPackageName()+"."+resolvedMethodDeclaration.getCorrespondingDeclaration().getClassName(),
-									parameterList,
-									neighborList,
-									lineContent,
-									this.getFilePath());
-								modelEntryList.add(modelEntry);
-								System.out.println("Model Entry: "+modelEntry);
+								if(m.getArguments().size()>0) {
+									for(int i=0;i<m.getArguments().size();i++) {
+										Expression expression = m.getArguments().get(i);
+										ParameterContent parameterContent = new ParameterContent(expression);
+										parameterContentList.add(parameterContent);
+									}
+								}
+								ModelEntry modelEntry = new ModelEntry(methodCallEntity, parameterContentList, neighborList, lineContent);
+								this.modelEntryList.add(modelEntry);*/
 							}
 						}
 					}
@@ -520,8 +501,9 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 	}
-	public List<ParameterDescriptor> getParameterDescriptorList() {
-		return parameterDescriptorList;
-	}
 
+	public List<ModelEntry> getModelEntryList() {
+		return modelEntryList;
+	}
+	
 }

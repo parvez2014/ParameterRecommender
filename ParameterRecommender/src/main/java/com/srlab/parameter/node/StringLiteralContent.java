@@ -10,11 +10,12 @@ import com.github.javaparser.ast.expr.StringLiteralExpr;
 public class StringLiteralContent extends ParameterContent{
 	
 	private String name;
-	private String absStringRep;
-	public StringLiteralContent(MethodCallExpr mi, MethodDeclaration md, StringLiteralExpr sl){
+	public StringLiteralContent(StringLiteralExpr sl){
 		super(sl);
 		name = sl.toString();
 		absStringRep = this.getStringRep(sl);
+		this.partlyAbsStringRep = sl.toString();
+		this.parent = null;
 	}
 	public String getName() {
 		return name;

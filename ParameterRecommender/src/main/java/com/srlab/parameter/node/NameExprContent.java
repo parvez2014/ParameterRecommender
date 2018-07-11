@@ -18,9 +18,7 @@ public class NameExprContent extends ParameterContent{
 	String name;     //the qualified name
 	String identifier;
 	String typeQualifiedName; //qualifiedName of the type
-	String absStringRep;
-	
-	public NameExprContent(MethodCallExpr mi, MethodDeclaration md, NameExpr nameExpr){
+	public NameExprContent(NameExpr nameExpr){
 		super(nameExpr);
 		this.name=null;
 		this.identifier=null;
@@ -39,6 +37,8 @@ public class NameExprContent extends ParameterContent{
 			this.identifier = sn.getIdentifier();
 			this.typeQualifiedName = typeDescriptor.getTypeQualifiedName();
 			this.absStringRep = this.getStringRep(nameExpr);
+			this.partlyAbsStringRep = this.getStringRep(nameExpr);
+			this.parent = null;
 		}
 	}
 	

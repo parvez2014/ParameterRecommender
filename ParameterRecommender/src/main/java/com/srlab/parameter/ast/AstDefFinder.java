@@ -35,22 +35,23 @@ import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
+import com.srlab.parameter.binding.JSSConfigurator;
+import com.srlab.parameter.binding.TypeDescriptor;
 import com.srlab.parameter.completioner.MethodCallEntity;
 import com.srlab.parameter.completioner.MethodDeclarationEntity;
 
 public class AstDefFinder extends VoidVisitorAdapter<Void> {
 
-	private MethodCallEntity definingMethodCallEntity; // if there is a method call, super method call, or class
-														// instance creation that create the method
+	//definingMethodCallEntity  is a method call, super method call, or class instance creation that create the method
+	private MethodCallEntity definingMethodCallEntity; 
 	private DefinitionType definitionType; // definition type
-
-	private final String varname; // variable name
-
-	private Position position;
-	private final MethodDeclaration methodDeclaration; // method declaration containing the method call
-	private final JavaParserFacade javaParserFacade;
 	private List<MethodCallEntity> methodCallEntities; // methods that are called on the receiver variable
 
+	private final String varname; // variable name
+	private Position position;	
+	private final MethodDeclaration methodDeclaration; // method declaration containing the method call
+	private final JavaParserFacade javaParserFacade;
+	
 	public DefinitionType getDefinitionType() {
 		return definitionType;
 	}
@@ -106,7 +107,6 @@ public class AstDefFinder extends VoidVisitorAdapter<Void> {
 			this.definingMethodCallEntity = _methodCallEntity;
 		} else if (this.definingMethodCallEntity != null && newPosition.isBefore(position)) {
 			Position curDefiningPosition = this.definingMethodCallEntity.getPosition();
-
 			if (newPosition.isAfter(curDefiningPosition)) {
 				this.definingMethodCallEntity = _methodCallEntity;
 				this.definitionType = _definitionType;
@@ -154,14 +154,34 @@ public class AstDefFinder extends VoidVisitorAdapter<Void> {
 		return false;
 	}
 
-	private boolean isStatic(final MethodCallExpr call) {
-		SymbolReference<ResolvedMethodDeclaration> resolvedMethodDeclaration = javaParserFacade.solve(call);
+	private boolean isStatic(final MethodCallExpr methodCallExpr) {
+		SymbolReference<ResolvedMethodDeclaration> resolvedMethodDeclaration = javaParserFacade.solve(methodCallExpr);
 		if (resolvedMethodDeclaration.isSolved()) {
 			return resolvedMethodDeclaration.getCorrespondingDeclaration().isStatic();
 		}
 		return false;
 	}
 
+	//we are assuming that method call has a receiver type
+	public Optional<String> getReceiverTypeQualifiedName(MethodCallExpr methodCallExpr) {
+		try {
+			SymbolReference<ResolvedMethodDeclaration> resolvedMethodDeclaration = this.javaParserFacade
+					.solve(methodCallExpr);
+			TypeDescriptor receiverTypeDescriptor = null;
+			if (methodCallExpr.getScope().isPresent()) {
+				SymbolReference<? extends ResolvedValueDeclaration> sr = JSSConfigurator.getInstance().getJpf().solve(methodCallExpr.getScope().get());
+				if(sr.isSolved()) {
+					ResolvedValueDeclaration resolvedValueDeclaration = sr.getCorrespondingDeclaration();
+					receiverTypeDescriptor = new TypeDescriptor(resolvedValueDeclaration.getType());
+					return Optional.of(receiverTypeDescriptor.getTypeQualifiedName());
+				}
+			}
+		}catch(Exception e) {
+			System.out.println("Error in resolving receiver type: "+methodCallExpr);
+		}
+		return Optional.empty();
+	}
+	
 	@Override
 	public void visit(AssignExpr assignExpr, Void arg) {
 		// TODO Auto-generated method stub
@@ -192,11 +212,17 @@ public class AstDefFinder extends VoidVisitorAdapter<Void> {
 			// x = some().method().call()
 			SymbolReference<ResolvedMethodDeclaration> resolvedMethodDeclaration = this.javaParserFacade
 					.solve(expression.asMethodCallExpr());
+			TypeDescriptor receiverTypeDescriptor = null;
 			if (resolvedMethodDeclaration.isSolved()) {
 				MethodCallExpr methodCallExpr = expression.asMethodCallExpr();
 				boolean isSuper = false;
 				boolean isThis = false;
 				if (methodCallExpr.getScope().isPresent()) {
+					SymbolReference<? extends ResolvedValueDeclaration> sr = JSSConfigurator.getInstance().getJpf().solve(methodCallExpr.getScope().get());
+					if(sr.isSolved()) {
+						ResolvedValueDeclaration resolvedValueDeclaration = sr.getCorrespondingDeclaration();
+						receiverTypeDescriptor = new TypeDescriptor(resolvedValueDeclaration.getType());
+					}
 					if (methodCallExpr.getScope().get() instanceof SuperExpr) {
 						isSuper = true;
 					} else if (methodCallExpr.getScope().get() instanceof ThisExpr) {
@@ -206,11 +232,12 @@ public class AstDefFinder extends VoidVisitorAdapter<Void> {
 					isThis = true;
 				}
 
-				MethodDeclarationEntity methodDeclarationEntity;
+				MethodDeclarationEntity methodDeclarationEntity = null;
 				try {
 					methodDeclarationEntity = MethodDeclarationEntity
 							.get(resolvedMethodDeclaration.getCorrespondingDeclaration(), javaParserFacade);
-					MethodCallEntity methodCallEntity = new MethodCallEntity(, isSuper,
+					Optional<String> optional = this.getReceiverTypeQualifiedName(methodCallExpr);
+					MethodCallEntity methodCallEntity = new MethodCallEntity(optional,isSuper,
 							isThis, expression.asMethodCallExpr().getName().getBegin(), methodDeclarationEntity);
 					this.registerMethodCallAndDefinition(DefinitionType.METHOD_RETURN, methodCallEntity,
 							expression.asMethodCallExpr().getName().getBegin().get());
@@ -226,10 +253,11 @@ public class AstDefFinder extends VoidVisitorAdapter<Void> {
 			if (resolvedConstructorDeclaration.isSolved()) {
 				MethodDeclarationEntity methodDeclarationEntity = MethodDeclarationEntity
 						.get(resolvedConstructorDeclaration.getCorrespondingDeclaration(), javaParserFacade);
-				MethodCallEntity methodCallEntity = new MethodCallEntity(Optional.empty(), false,
-						false, expression.asMethodCallExpr().getName().getBegin(), methodDeclarationEntity);
-				this.registerMethodCallAndDefinition(DefinitionType.METHOD_RETURN, methodCallEntity,
-						expression.asMethodCallExpr().getName().getBegin().get());
+				Optional<String> optional = Optional.empty();
+				MethodCallEntity methodCallEntity = new MethodCallEntity(optional, false,
+						false, expression.asObjectCreationExpr().getType().getBegin(), methodDeclarationEntity);
+				this.registerMethodCallAndDefinition(DefinitionType.NEW, methodCallEntity,
+						expression.asObjectCreationExpr().getType().getBegin().get());
 			}
 		} else if (expression.isNameExpr()) {
 			// e.g. int j=anotherValue;
@@ -257,7 +285,8 @@ public class AstDefFinder extends VoidVisitorAdapter<Void> {
 			if (resolvedConstructorDeclaration.isSolved()) {
 				MethodDeclarationEntity methodDeclarationEntity = MethodDeclarationEntity
 						.get(resolvedConstructorDeclaration.getCorrespondingDeclaration(), javaParserFacade);
-				MethodCallEntity methodCallEntity = new MethodCallEntity(Optional.empty(), false,
+				Optional<String> optional = Optional.empty();
+				MethodCallEntity methodCallEntity = new MethodCallEntity(optional, false,
 						true, n.getBegin(), methodDeclarationEntity);
 				this.registerMethodCall(methodCallEntity);
 			}
@@ -267,7 +296,8 @@ public class AstDefFinder extends VoidVisitorAdapter<Void> {
 			if (resolvedConstructorDeclaration.isSolved()) {
 				MethodDeclarationEntity methodDeclarationEntity = MethodDeclarationEntity
 						.get(resolvedConstructorDeclaration.getCorrespondingDeclaration(), javaParserFacade);
-				MethodCallEntity methodCallEntity = new MethodCallEntity(Optional.empty(), true,
+				Optional<String> optional = Optional.empty();
+				MethodCallEntity methodCallEntity = new MethodCallEntity(optional, true,
 						false, n.getBegin(), methodDeclarationEntity);
 				this.registerMethodCall(methodCallEntity);
 			}
@@ -284,7 +314,7 @@ public class AstDefFinder extends VoidVisitorAdapter<Void> {
 		if (m.getScope().isPresent() && m.getScope().get() instanceof NameExpr) {
 			NameExpr nameExpr = m.getScope().get().asNameExpr();
 			if (this.matchesVarName(nameExpr.getName())) {
-				definitionType = DefinitionType.METHOD_RETURN;
+				//definitionType = DefinitionType.METHOD_RETURN;
 				SymbolReference<ResolvedMethodDeclaration> resolvedMethodDeclaration = this.javaParserFacade.solve(m);
 				if (m.getScope().get() instanceof SuperExpr) {
 					isSuper = true;
@@ -298,7 +328,8 @@ public class AstDefFinder extends VoidVisitorAdapter<Void> {
 					try {
 						methodDeclarationEntity = MethodDeclarationEntity
 								.get(resolvedMethodDeclaration.getCorrespondingDeclaration(), javaParserFacade);
-						MethodCallEntity methodCallEntity = new MethodCallEntity(Optional.empty(),
+						Optional<String> optional = this.getReceiverTypeQualifiedName(m);
+						MethodCallEntity methodCallEntity = new MethodCallEntity(optional,
 								isSuper, isThis, m.getName().getBegin(), methodDeclarationEntity);
 						this.registerMethodCall(methodCallEntity);
 					} catch (Exception e) {
@@ -308,7 +339,7 @@ public class AstDefFinder extends VoidVisitorAdapter<Void> {
 				}
 			}
 		} else if (m.getScope().isPresent() && m.getScope().get() instanceof SuperExpr && varname.equals("super")) {
-			definitionType = DefinitionType.METHOD_RETURN;
+			//definitionType = DefinitionType.METHOD_RETURN;
 			if (m.getScope().get() instanceof SuperExpr) {
 				isSuper = true;
 			} else if (m.getScope().get() instanceof ThisExpr) {
@@ -322,7 +353,8 @@ public class AstDefFinder extends VoidVisitorAdapter<Void> {
 				try {
 					methodDeclarationEntity = MethodDeclarationEntity
 							.get(resolvedMethodDeclaration.getCorrespondingDeclaration(), javaParserFacade);
-					MethodCallEntity methodCallEntity = new MethodCallEntity(Optional.empty(), isSuper,
+					Optional<String> optional = Optional.empty();
+					MethodCallEntity methodCallEntity = new MethodCallEntity(optional, isSuper,
 							isThis, m.getName().getBegin(), methodDeclarationEntity);
 					this.registerMethodCall(methodCallEntity);
 				} catch (Exception e) {
@@ -332,14 +364,15 @@ public class AstDefFinder extends VoidVisitorAdapter<Void> {
 				
 			}
 		} else if (isThis()) {
-			definitionType = DefinitionType.METHOD_RETURN;
+			//definitionType = DefinitionType.METHOD_RETURN;
 			SymbolReference<ResolvedMethodDeclaration> resolvedMethodDeclaration = this.javaParserFacade.solve(m);
 			if (resolvedMethodDeclaration.isSolved()) {
 				MethodDeclarationEntity methodDeclarationEntity;
 				try {
 					methodDeclarationEntity = MethodDeclarationEntity
 							.get(resolvedMethodDeclaration.getCorrespondingDeclaration(), javaParserFacade);
-					MethodCallEntity methodCallEntity = new MethodCallEntity(Optional.empty(), true,
+					Optional<String> optional = Optional.empty();
+					MethodCallEntity methodCallEntity = new MethodCallEntity(optional, true,
 							false, m.getName().getBegin(), methodDeclarationEntity);
 					this.registerMethodCall(methodCallEntity);
 				} catch (Exception e) {
@@ -377,7 +410,16 @@ public class AstDefFinder extends VoidVisitorAdapter<Void> {
 			evaluateVariableDeclarationFragment(v);
 		}
 	}
-
+	
+	public void print() {
+		System.out.println("Variable Name: " + this.varname + "Position: "+this.getPosition());
+		System.out.println("Defining Method Call Entity: "+definingMethodCallEntity);
+		System.out.println("Definition Type: "+this.definitionType);
+		System.out.println("Method Called On Receiver Variables:" );
+		for(MethodCallEntity mce:this.methodCallEntities) {
+			System.out.println(mce.toString());
+		}
+	}
 	/**
 	 * Specifies how the variable under examination was defined (field, parameter,
 	 * by method return...).

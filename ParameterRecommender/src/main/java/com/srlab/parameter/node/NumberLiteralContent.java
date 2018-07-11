@@ -9,60 +9,59 @@ import com.github.javaparser.ast.expr.LiteralStringValueExpr;
 import com.github.javaparser.ast.expr.LongLiteralExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 
-public class NumberLiteralContent extends ParameterContent{
+public class NumberLiteralContent extends ParameterContent {
 	private String name;
-	private String absStringRep;
-	public NumberLiteralContent(MethodCallExpr mi, MethodDeclaration md, CharLiteralExpr cl){
-		super(cl);
-		name = cl.toString();
-		this.absStringRep = this.getStringRep(cl);
-	}
-	public NumberLiteralContent(MethodCallExpr mi, MethodDeclaration md, DoubleLiteralExpr dl){
+	public NumberLiteralContent(DoubleLiteralExpr dl) {
 		super(dl);
 		name = dl.toString();
 		this.absStringRep = this.getStringRep(dl);
+		this.partlyAbsStringRep = dl.toString();
+		this.parent = null;
 	}
-	public NumberLiteralContent(MethodCallExpr mi, MethodDeclaration md, LongLiteralExpr ll){
+
+	public NumberLiteralContent(LongLiteralExpr ll) {
 		super(ll);
 		name = ll.toString();
 		this.absStringRep = this.getStringRep(ll);
+		this.partlyAbsStringRep = ll.toString();
+		this.parent = null;
 	}
-	public NumberLiteralContent(MethodCallExpr mi, MethodDeclaration md, IntegerLiteralExpr il){
+
+	public NumberLiteralContent(IntegerLiteralExpr il) {
 		super(il);
 		name = il.toString();
 		this.absStringRep = this.getStringRep(il);
+		this.partlyAbsStringRep = il.toString();
+		this.parent = null;
 	}
-	
-	public String getStringRep(LiteralStringValueExpr expr) {
-		if(expr instanceof DoubleLiteralExpr) {
+
+	/*public String getStringRep(LiteralStringValueExpr expr) {
+		if (expr instanceof DoubleLiteralExpr) {
 			return expr.toString();
-		}
-		else if(expr instanceof LongLiteralExpr) {
+		} else if (expr instanceof LongLiteralExpr) {
 			return expr.toString();
-		}
-		else if(expr instanceof IntegerLiteralExpr) {
+		} else if (expr instanceof IntegerLiteralExpr) {
 			return expr.toString();
+		} else {
+			throw new RuntimeException("Could not match number literal content: " + expr.toString());
 		}
-		else {
-			throw new RuntimeException("Could not match number literal content: "+expr.toString());
-		}
-	}
+	}*/
+
 	private String getStringRep(CharLiteralExpr cl) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	
-	
-	
+
 	public String getName() {
 		return name;
 	}
+
 	public String getAbsStringRep() {
 		return absStringRep;
 	}
-	public void print(){
-		System.out.print("Name: "+this.getName());
-		System.out.println("Abstract String Rep: "+this.getAbsStringRep());
+
+	public void print() {
+		System.out.print("Name: " + this.getName());
+		System.out.println("Abstract String Rep: " + this.getAbsStringRep());
 	}
 }

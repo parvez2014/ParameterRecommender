@@ -8,8 +8,11 @@ import com.github.javaparser.ast.expr.BooleanLiteralExpr;
 import com.github.javaparser.ast.expr.CastExpr;
 import com.github.javaparser.ast.expr.CharLiteralExpr;
 import com.github.javaparser.ast.expr.ClassExpr;
+import com.github.javaparser.ast.expr.DoubleLiteralExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
+import com.github.javaparser.ast.expr.IntegerLiteralExpr;
+import com.github.javaparser.ast.expr.LongLiteralExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.Name;
 import com.github.javaparser.ast.expr.NameExpr;
@@ -24,10 +27,15 @@ import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.binding.TypeDescriptor;
+import com.srlab.parameter.category.ParameterExpressionCategorizer;
 
 public class ParameterContent implements Serializable{
 	protected String stringParamNode;
-
+	protected ParameterContent parent;
+	private String parameterExpressionType;
+	protected String absStringRep;
+	protected String partlyAbsStringRep;
+	
 	public String getStringParamNode() {
 		return stringParamNode;
 	}
@@ -36,13 +44,69 @@ public class ParameterContent implements Serializable{
 		System.out.println("String Param Node: " + this.stringParamNode);
 	}
 	
-	public ParameterContent() {
-
-	}
-	public ParameterContent(Node node) {
-		stringParamNode = node.toString();
+	public String getAbsStringRep() {
+		return absStringRep;
 	}
 
+	public ParameterContent getParent() {
+		return parent;
+	}
+
+	public String getParameterExpressionType() {
+		return parameterExpressionType;
+	}
+
+	public String getPartlyAbsStringRep() {
+		return partlyAbsStringRep;
+	}
+
+	public ParameterContent(Expression expression) {
+		this.parameterExpressionType = ParameterExpressionCategorizer.getParameterExpressionType(expression);
+	}
+	public static ParameterContent get(Expression expression) {
+		if (expression instanceof StringLiteralExpr) {
+			return new StringLiteralContent((StringLiteralExpr)expression);
+		} else if (expression instanceof NullLiteralExpr) {
+			return new NullLiteralContent((NullLiteralExpr)expression);
+		} else if (expression instanceof BooleanLiteralExpr) {
+			return new BooleanLiteralContent((BooleanLiteralExpr)expression);
+		} 
+		else if(expression instanceof DoubleLiteralExpr) {
+			return new NumberLiteralContent((DoubleLiteralExpr)expression);
+		}
+		else if(expression instanceof LongLiteralExpr) {
+			return new NumberLiteralContent((LongLiteralExpr)expression);	
+		}
+		
+		else if(expression instanceof IntegerLiteralExpr) {
+			return new NumberLiteralContent((IntegerLiteralExpr)expression);	
+		}
+		else if (expression instanceof CharLiteralExpr) {
+			return new CharLiteralContent((CharLiteralExpr)expression);
+		} 
+		else if(expression instanceof NameExpr) {
+			return new NameExprContent((NameExpr)expression);
+		}
+		else if(expression instanceof FieldAccessExpr) {
+			return new QualifiedNameContent((FieldAccessExpr)expression);
+		}
+		else if(expression instanceof ObjectCreationExpr) {
+			return new ClassInstanceCreationContent((ObjectCreationExpr)expression);
+		}
+		else if(expression instanceof CastExpr) {
+			return new CastExpressionContent((CastExpr)expression);
+		}
+		else if(expression instanceof MethodCallExpr) {
+			return new MethodInvocationContent((MethodCallExpr)expression);
+		}
+		else if(expression instanceof ThisExpr) {
+			return new ThisExpressionContent((ThisExpr)expression);
+		}else {
+			throw new RuntimeException("Unknown Expression Exception Type");
+		}
+	}
+
+	//The problem with Java symbol solver is that if the NameExpr indicates a type name, such as BufferedReder, it can solve the type of BufferedReader
 	public String getStringRep(Expression expression) {
 		if (expression instanceof StringLiteralExpr) {
 			return expression.toString();
@@ -61,7 +125,11 @@ public class ParameterContent implements Serializable{
 				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 				return "SN"+":"+typeDescriptor.getTypeQualifiedName();
 			}
-			else return null;
+			else if(Character.isUpperCase(sn.getIdentifier().charAt(0))){
+				return sn.getIdentifier();
+			}else {
+				throw new RuntimeException("Error in parsing NameExpr: "+expression);
+			}
 		}
 		else if(expression instanceof CastExpr) {
 			CastExpr ce = (CastExpr)expression;
@@ -99,8 +167,14 @@ public class ParameterContent implements Serializable{
 			ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
 			ResolvedType resolvedType = resolvedValueDeclaration.getType();
 			TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-
-			return this.getStringRep(fieldAccessExpr.getScope())+"."+"SN:"+typeDescriptor.getTypeQualifiedName();
+			System.out.println("FieldAccessExpr in ParameterContent: "+fieldAccessExpr.getScope());
+			if(Character.isUpperCase(fieldAccessExpr.getScope().toString().charAt(0))&& Character.isUpperCase(fieldAccessExpr.getName().getIdentifier().charAt(0))) {
+				return fieldAccessExpr.getScope().toString()+"."+fieldAccessExpr.getName().getIdentifier();
+			}
+			else if (Character.isUpperCase(fieldAccessExpr.getScope().toString().charAt(0))){
+				return fieldAccessExpr.getScope().toString()+"."+"SN:"+typeDescriptor.getTypeQualifiedName();
+			}
+			else return this.getStringRep(fieldAccessExpr.getScope())+"."+"SN:"+typeDescriptor.getTypeQualifiedName();
 		}
 		else if(expression instanceof CharLiteralExpr) {
 			return expression.toString();

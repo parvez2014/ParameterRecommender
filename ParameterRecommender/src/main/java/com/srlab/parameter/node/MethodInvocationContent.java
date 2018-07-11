@@ -20,15 +20,15 @@ public class MethodInvocationContent extends ParameterContent{
 	private String receiverTypeQualifiedName;
 	private String absStringRep;
 	
-	public MethodInvocationContent(MethodCallExpr mmi, MethodDeclaration md, MethodCallExpr mi){
-		
+	public MethodInvocationContent(MethodCallExpr mi){
 		super(mi);
 		this.name = mi.toString();
 		this.methodName = mi.getName().getIdentifier();
+		this.absStringRep = this.getStringRep(mi);		
+
 		this.receiver = null;
 		this.receiverTypeQualifiedName = null;
-		this.absStringRep = null;		
-
+		
 		if(mi.getScope().isPresent()) {
 			this.receiver = mi.getScope().toString();
 			JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
@@ -39,6 +39,7 @@ public class MethodInvocationContent extends ParameterContent{
 				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 				this.receiverTypeQualifiedName = typeDescriptor.getTypeQualifiedName();
 			}
+			this.parent = ParameterContent.get(mi.getScope().get());
 		}
 	}
 
@@ -61,9 +62,12 @@ public class MethodInvocationContent extends ParameterContent{
 	public String getAbsStringRep() {
 		return absStringRep;
 	}
-	
-	public void print() {
-		System.out.println("MethodInvocationContent [name=" + name + ", methodName=" + methodName + ", receiver=" + receiver
-				+ ", receiverTypeQualifiedName=" + receiverTypeQualifiedName + ", absStringRep=" + absStringRep + "]");
+
+	@Override
+	public String toString() {
+		return "MethodInvocationContent [name=" + name + ", methodName=" + methodName + ", receiver=" + receiver
+				+ ", receiverTypeQualifiedName=" + receiverTypeQualifiedName + ", absStringRep=" + absStringRep + "]";
 	}
+	
+	
 }
