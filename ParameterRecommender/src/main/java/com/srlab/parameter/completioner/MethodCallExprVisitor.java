@@ -22,8 +22,20 @@ import com.github.javaparser.Position;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.BooleanLiteralExpr;
+import com.github.javaparser.ast.expr.CastExpr;
+import com.github.javaparser.ast.expr.CharLiteralExpr;
+import com.github.javaparser.ast.expr.DoubleLiteralExpr;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
+import com.github.javaparser.ast.expr.IntegerLiteralExpr;
+import com.github.javaparser.ast.expr.LongLiteralExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.NullLiteralExpr;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.expr.StringLiteralExpr;
+import com.github.javaparser.ast.expr.ThisExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
@@ -32,7 +44,18 @@ import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.config.Config;
+import com.srlab.parameter.node.BooleanLiteralContent;
+import com.srlab.parameter.node.CastExpressionContent;
+import com.srlab.parameter.node.CharLiteralContent;
+import com.srlab.parameter.node.ClassInstanceCreationContent;
+import com.srlab.parameter.node.MethodInvocationContent;
+import com.srlab.parameter.node.NameExprContent;
+import com.srlab.parameter.node.NullLiteralContent;
+import com.srlab.parameter.node.NumberLiteralContent;
 import com.srlab.parameter.node.ParameterContent;
+import com.srlab.parameter.node.QualifiedNameContent;
+import com.srlab.parameter.node.StringLiteralContent;
+import com.srlab.parameter.node.ThisExpressionContent;
 
 
 public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
@@ -442,6 +465,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 		@Override
 		public void visit(MethodCallExpr m, Void arg) {
 			// TODO Auto-generated method stub
+		
 			super.visit(m, arg);
 			if(m.getScope().isPresent()) {
 				try {					
@@ -450,11 +474,9 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 						ResolvedMethodDeclaration resolvedMethodDeclaration = srResolvedMethodDeclaration.getCorrespondingDeclaration();
 						
 						if(Config.isInteresting(resolvedMethodDeclaration.getQualifiedName())) {
-							
 							MethodDeclaration methodDeclaration = this.getMethodDeclarationContainer(m);	
-							//System.out.println("Parameters: "+parameterList);
 							if(methodDeclaration!=null && methodDeclaration.getBegin().isPresent() && m.getBegin().isPresent()) {
-								
+								System.out.println("Method Call Expr: "+m+" File: "+this.getFilePath()+" Line: "+m.getBegin().get().line);
 								/*System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++=");
 								System.out.println("Expression expression: "+m);
 								System.out.println("Method Name: "+m.getName().getIdentifier() +" Scope: "+m.getScope().get());
@@ -467,7 +489,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 								*/
 								
 								
-								/*String source = FileUtils.readFileToString(new File(this.filePath));
+								String source = FileUtils.readFileToString(new File(this.filePath));
 								String text = this.collectSourceString(source,methodDeclaration.getBegin().get(),m.getBegin().get());
 								
 								List<Token> tokenList = this.tokenize(text);
@@ -481,12 +503,67 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 								if(m.getArguments().size()>0) {
 									for(int i=0;i<m.getArguments().size();i++) {
 										Expression expression = m.getArguments().get(i);
-										ParameterContent parameterContent = new ParameterContent(expression);
-										parameterContentList.add(parameterContent);
+										if (expression instanceof StringLiteralExpr) {
+											ParameterContent parameterContent = new StringLiteralContent((StringLiteralExpr)expression);
+											parameterContentList.add(parameterContent);
+										} else if (expression instanceof NullLiteralExpr) {
+											ParameterContent parameterContent = new NullLiteralContent((NullLiteralExpr)expression);
+											parameterContentList.add(parameterContent);
+										} else if (expression instanceof BooleanLiteralExpr) {
+											ParameterContent parameterContent = new BooleanLiteralContent((BooleanLiteralExpr)expression);
+											parameterContentList.add(parameterContent);
+										} 
+										else if(expression instanceof DoubleLiteralExpr) {
+											ParameterContent parameterContent = new NumberLiteralContent((DoubleLiteralExpr)expression);
+											parameterContentList.add(parameterContent);
+										}
+										else if(expression instanceof LongLiteralExpr) {
+											ParameterContent parameterContent = new NumberLiteralContent((LongLiteralExpr)expression);	
+											parameterContentList.add(parameterContent);
+										}
+										
+										else if(expression instanceof IntegerLiteralExpr) {
+											ParameterContent parameterContent = new NumberLiteralContent((IntegerLiteralExpr)expression);	
+											parameterContentList.add(parameterContent);
+										}
+										else if (expression instanceof CharLiteralExpr) {
+											ParameterContent parameterContent = new CharLiteralContent((CharLiteralExpr)expression);
+											parameterContentList.add(parameterContent);
+										} 
+										else if(expression instanceof NameExpr) {
+											ParameterContent parameterContent = new NameExprContent((NameExpr)expression);
+											parameterContentList.add(parameterContent);
+										}
+										else if(expression instanceof FieldAccessExpr) {
+											ParameterContent parameterContent = new QualifiedNameContent((FieldAccessExpr)expression);
+											parameterContentList.add(parameterContent);
+										}
+										else if(expression instanceof ObjectCreationExpr) {
+											ParameterContent parameterContent = new ClassInstanceCreationContent((ObjectCreationExpr)expression);
+											parameterContentList.add(parameterContent);
+										}
+										else if(expression instanceof CastExpr) {
+											ParameterContent parameterContent = new CastExpressionContent((CastExpr)expression);
+											parameterContentList.add(parameterContent);
+										}
+										else if(expression instanceof MethodCallExpr) {
+											ParameterContent parameterContent = new MethodInvocationContent((MethodCallExpr)expression);
+											parameterContentList.add(parameterContent);
+										}
+										else if(expression instanceof ThisExpr) {
+											ParameterContent parameterContent = new ThisExpressionContent((ThisExpr)expression);
+											parameterContentList.add(parameterContent);
+										}else {
+											throw new RuntimeException("Unknown Expression Exception Type");
+										}
+										
 									}
 								}
+								//System.out.println("Interesting ...");
+								
 								ModelEntry modelEntry = new ModelEntry(methodCallEntity, parameterContentList, neighborList, lineContent);
-								this.modelEntryList.add(modelEntry);*/
+								this.modelEntryList.add(modelEntry);
+								//System.out.println("Model Entry: "+modelEntry);
 							}
 						}
 					}

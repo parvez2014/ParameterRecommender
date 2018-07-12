@@ -67,7 +67,7 @@ public class TypeDescriptor implements Serializable{
 			return TypeDescriptor.resolveTypeQualifiedName(resolvedType.asArrayType().getComponentType());
 		}
 		else if(resolvedType.isUnionType()) {
-			return TypeDescriptor.resolveTypeQualifiedName(resolvedType.asUnionType());
+			return null;//return TypeDescriptor.resolveTypeQualifiedName(resolvedType.asUnionType());
 		}
 		else if(resolvedType.isTypeVariable()) {
 			return resolvedType.asTypeVariable().qualifiedName();

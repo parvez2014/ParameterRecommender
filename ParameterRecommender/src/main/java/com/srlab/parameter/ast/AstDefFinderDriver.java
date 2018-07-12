@@ -60,6 +60,7 @@ public class AstDefFinderDriver {
 	}
 	
 	public static void main(String args[]) {
+		System.out.println("Running ASTDefFinder");
 		AstDefFinderDriver astDefFinderDriver = new AstDefFinderDriver(Config.TEST_REPOSITORY_PATH);
 		astDefFinderDriver.run();
 	}

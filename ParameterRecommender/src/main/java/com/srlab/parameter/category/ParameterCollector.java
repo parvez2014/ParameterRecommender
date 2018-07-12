@@ -31,7 +31,9 @@ public class ParameterCollector {
 		List<String> fileList = this.collectSourceFiles(new File(this.repositoryPath));
 		System.out.println("Total Collected Files: "+fileList.size());
 		ParameterExpressionCategorizer parameterExpressionCategorizer = new ParameterExpressionCategorizer(true);
+		int counter = 0;
 		for(String file:fileList) {
+			System.out.println("Progress: "+ (counter++)+"/"+fileList.size());
 			//first convert the file to compilation unit
 			CompilationUnit cu;
 			try {
@@ -39,7 +41,7 @@ public class ParameterCollector {
 				ParameterCategoryVisitor visitor = new ParameterCategoryVisitor(cu, parameterExpressionCategorizer);
 				cu.accept(visitor,null);
 		
-			} catch (FileNotFoundException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -52,7 +54,7 @@ public class ParameterCollector {
 	}
 	
 	public static void main(String args[]) {
-		ParameterCollector parameterCollector = new ParameterCollector(Config.REPOSITORY_PATH);
+		ParameterCollector parameterCollector = new ParameterCollector(Config.TEST_REPOSITORY_PATH);
 		parameterCollector.run();
 	}
 }
