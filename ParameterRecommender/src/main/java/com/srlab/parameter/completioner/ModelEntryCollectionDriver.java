@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -23,6 +24,9 @@ public class ModelEntryCollectionDriver {
 	
 	private String repositoryPath;
 	private List<ModelEntry> modelEntryList;
+	private HashMap<String,List<ModelEntry>> hmFileToModelEntries;
+	private HashMap<String,List<ParameterModelEntry>> hmFileToParameterModelEntries;
+	
 	
 	public List<String> collectSourceFiles(File file){
 		List<String> fileList = new LinkedList();
@@ -40,10 +44,12 @@ public class ModelEntryCollectionDriver {
 		List<String> fileList = this.collectSourceFiles(new File(this.repositoryPath));
 		System.out.println("Total Collected Files: "+fileList.size());
 		int counter = 0;
-		for(String file:fileList) {
+		for(String file:fileList.subList(0, 10)) {
 			//first convert the file to compilation unit
 			System.out.println("Progress: "+ (counter++)+"/"+fileList.size());
 			CompilationUnit cu;
+			List<ModelEntry> fileModelEntryList = new ArrayList();
+			List<ParameterModelEntry> fileParameterModelEntryList = new ArrayList();
 			try {
 				cu = JavaParser.parse(new FileInputStream(file));
 				
@@ -54,13 +60,16 @@ public class ModelEntryCollectionDriver {
 							MethodCallExprVisitor methodCallExprVisitor = new MethodCallExprVisitor(cu,file);
 							md.accept(methodCallExprVisitor,null);
 							modelEntryList.addAll(methodCallExprVisitor.getModelEntryList());
+							fileModelEntryList.addAll(methodCallExprVisitor.getModelEntryList());
+							fileParameterModelEntryList.addAll(methodCallExprVisitor.getParameterModelEntryList());
+							
 						}
 					}	
 				}
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				//e.printStackTrace();
 			}
+			this.hmFileToModelEntries.put(file,fileModelEntryList);
 		}
 	}
 	
@@ -72,11 +81,21 @@ public class ModelEntryCollectionDriver {
 		return modelEntryList;
 	}
 
+	public HashMap<String, List<ParameterModelEntry>> getHmFileToParameterModelEntries() {
+		return hmFileToParameterModelEntries;
+	}
+
 	public ModelEntryCollectionDriver(String _repositoryPath) {
 		this.repositoryPath = _repositoryPath;
 		this.modelEntryList = new LinkedList();
+		this.hmFileToModelEntries = new HashMap();
+		this.hmFileToParameterModelEntries = new HashMap();
 	}
-	
+
+	public HashMap<String, List<ModelEntry>> getHmFileToModelEntries() {
+		return hmFileToModelEntries;
+	}
+
 	public static void main(String args[]) {
 		ModelEntryCollectionDriver modelEntryCollectionDriver = new ModelEntryCollectionDriver(Config.TEST_REPOSITORY_PATH);
 		modelEntryCollectionDriver.run();

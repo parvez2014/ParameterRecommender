@@ -84,7 +84,7 @@ public class MethodCallEntity implements Serializable{
 		this.isSuper = isSuper;
 	}
 
-	public Position getPosition() {
+	public SourcePosition getPosition() {
 		return position;
 	}
 

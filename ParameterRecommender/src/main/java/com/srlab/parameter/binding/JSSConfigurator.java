@@ -31,7 +31,6 @@ public class JSSConfigurator {
 	private JSSConfigurator(){
 		this.combinedTypeSolver = null;
 		this.jpf = null;
-		this.init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH);
 	}
 	
 	public void clear() {

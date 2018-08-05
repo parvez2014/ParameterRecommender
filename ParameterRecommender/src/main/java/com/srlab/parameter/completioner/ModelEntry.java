@@ -9,6 +9,7 @@ public class ModelEntry {
 	private List<ParameterContent> parameterContentList;
 	private String neighborList;
 	private String lineContent;
+	
 
 	public ModelEntry(MethodCallEntity methodCallEntity, List<ParameterContent> parameterContentList, String neighborList, String lineContent) {
 		super();

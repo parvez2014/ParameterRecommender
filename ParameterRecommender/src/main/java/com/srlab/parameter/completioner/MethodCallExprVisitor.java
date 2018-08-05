@@ -42,7 +42,9 @@ import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclar
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
+import com.github.javaparser.symbolsolver.resolution.typeinference.TypeHelper;
 import com.srlab.parameter.binding.JSSConfigurator;
+import com.srlab.parameter.binding.TypeResolver;
 import com.srlab.parameter.config.Config;
 import com.srlab.parameter.node.BooleanLiteralContent;
 import com.srlab.parameter.node.CastExpressionContent;
@@ -61,16 +63,20 @@ import com.srlab.parameter.node.ThisExpressionContent;
 public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 
 	private List<ModelEntry> modelEntryList;
+	private List<ParameterModelEntry> parameterModelEntryList;
 	private String filePath;
 	private CompilationUnit cu;
 	private HashMap<String,String> hmKeyword;
 	private HashMap<String, String> hmLineKeyword;
+	private HashMap hmParaMeterModelEntryToMethodCallExr;
 	public static int NL=4;
 	
 	public MethodCallExprVisitor(CompilationUnit _cu, String _path) {
 		// TODO Auto-generated constructor stub
 		this.cu = _cu;
 		this.modelEntryList = new LinkedList();
+		this.parameterModelEntryList = new LinkedList();
+		this.hmParaMeterModelEntryToMethodCallExr = new HashMap();
 		this.filePath = _path;
 		this.hmKeyword = new HashMap();
 		this.hmLineKeyword = new HashMap();
@@ -121,6 +127,10 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 		this.filePath = filePath;
 	}
 	
+	public HashMap getHmParaMeterModelEntryToMethodCallExr() {
+		return hmParaMeterModelEntryToMethodCallExr;
+	}
+
 	public MethodDeclaration getMethodDeclarationContainer(Node node) {
 		Optional<Node> parent = node.getParentNode();
 		while(parent.isPresent() && ((parent.get() instanceof MethodDeclaration))==false){
@@ -474,6 +484,10 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 						ResolvedMethodDeclaration resolvedMethodDeclaration = srResolvedMethodDeclaration.getCorrespondingDeclaration();
 						
 						if(Config.isInteresting(resolvedMethodDeclaration.getQualifiedName())) {
+							//determine Receiver Type
+							Expression receiverExpression = m.getScope().get();
+							String receiverType = TypeResolver.resolve(m.getScope().get());
+							
 							MethodDeclaration methodDeclaration = this.getMethodDeclarationContainer(m);	
 							if(methodDeclaration!=null && methodDeclaration.getBegin().isPresent() && m.getBegin().isPresent()) {
 								System.out.println("Method Call Expr: "+m+" File: "+this.getFilePath()+" Line: "+m.getBegin().get().line);
@@ -563,6 +577,13 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 								
 								ModelEntry modelEntry = new ModelEntry(methodCallEntity, parameterContentList, neighborList, lineContent);
 								this.modelEntryList.add(modelEntry);
+								if(parameterContentList.size()>0) {
+									for(int i=0;i<parameterContentList.size();i++) {
+										ParameterModelEntry parameterModelEntry = new ParameterModelEntry(modelEntry, receiverType, i);
+										this.parameterModelEntryList.add(parameterModelEntry);
+										this.hmParaMeterModelEntryToMethodCallExr.put(parameterModelEntry, m);
+									}
+								}
 								//System.out.println("Model Entry: "+modelEntry);
 							}
 						}
@@ -577,6 +598,10 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
+	}
+
+	public List<ParameterModelEntry> getParameterModelEntryList() {
+		return parameterModelEntryList;
 	}
 
 	public List<ModelEntry> getModelEntryList() {
