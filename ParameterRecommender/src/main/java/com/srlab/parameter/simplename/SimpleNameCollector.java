@@ -90,7 +90,7 @@ public class SimpleNameCollector extends VoidVisitorAdapter<Void> {
 						parameter.getName().getIdentifier(), VariableEntityCategory.PARAMETER,
 						VariableLocationCategory.PARAMETER_DECLARATION, sourcePosition);
 				this.parameterVariableEntities.add(variableEntity);
-				System.out.println(variableEntity);
+				//System.out.println(variableEntity);
 			}
 		}
 	}
@@ -131,7 +131,7 @@ public class SimpleNameCollector extends VoidVisitorAdapter<Void> {
 								identifier, VariableEntityCategory.FIELD, VariableLocationCategory.FIELD_DECLARATION,
 								sourcePosition);
 						fieldVariableEntities.add(variableEntity);
-						System.out.println(variableEntity);
+						//System.out.println(variableEntity);
 					}
 				}
 			}
@@ -199,7 +199,7 @@ public class SimpleNameCollector extends VoidVisitorAdapter<Void> {
 					VariableEntityCategory.LOCAL, VariableLocationCategory.LOCAL_DECLARATION, sourcePosition);
 			this.localVariableDeclarationEntities.add(variableEntity);
 			this.localVariableDeclarationOrAssignedEntities.add(variableEntity);
-			System.out.println(variableEntity);
+			//System.out.println(variableEntity);
 		}
 	}
 
@@ -226,13 +226,13 @@ public class SimpleNameCollector extends VoidVisitorAdapter<Void> {
 							simpleName.getIdentifier(), VariableEntityCategory.UNKNOWN,
 							VariableLocationCategory.ASSIGNMENT, sourcePosition);
 					this.localVariableDeclarationOrAssignedEntities.add(variableEntity);
-					System.out.println(variableEntity);
+					//System.out.println(variableEntity);
 				} else {
 					VariableEntity variableEntity = new VariableEntity(typeDescriptor.getTypeQualifiedName(),
 							simpleName.getIdentifier(), VariableEntityCategory.UNKNOWN,
 							VariableLocationCategory.NAME_EXPR, sourcePosition);
 					this.usedVariableEntities.add(variableEntity);
-					System.out.println(variableEntity);
+					//System.out.println(variableEntity);
 				}
 			}
 		}

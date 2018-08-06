@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.config.Config;
 
 public class ParameterCollector {
@@ -54,7 +55,8 @@ public class ParameterCollector {
 	}
 	
 	public static void main(String args[]) {
-		ParameterCollector parameterCollector = new ParameterCollector(Config.TEST_REPOSITORY_PATH);
+		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH, Config.EXTERNAL_DEPENDENCY_PATH);
+		ParameterCollector parameterCollector = new ParameterCollector(Config.REPOSITORY_PATH);
 		parameterCollector.run();
 	}
 }

@@ -69,8 +69,6 @@ public class ParameterCategoryVisitor extends VoidVisitorAdapter<Void>{
 	public void visit(ArrayCreationExpr n, Void arg) {
 		// TODO Auto-generated method stub
 		super.visit(n, arg);
-		System.out.println("Array Creation Expr: "+n+ TypeResolver.resolve(n));
-	
 	}
 
 
@@ -78,7 +76,6 @@ public class ParameterCategoryVisitor extends VoidVisitorAdapter<Void>{
 	public void visit(SuperExpr n, Void arg) {
 		// TODO Auto-generated method stub
 		super.visit(n, arg);
-		System.out.println("Super Expr: "+n+ TypeResolver.resolve(n));
 	}
 
 
@@ -103,7 +100,7 @@ public class ParameterCategoryVisitor extends VoidVisitorAdapter<Void>{
 					if(m.getArguments().size()>0) {
 						for(int i=0;i<m.getArguments().size();i++) {
 							Expression expression = m.getArguments().get(i);
-							System.out.println("Expression: "+expression+" TQN:"+TypeResolver.resolve(expression));
+							System.out.println("**********Expression: "+expression+" TQN:"+TypeResolver.resolve(expression));
 							if(expression instanceof FieldAccessExpr) {
 								System.out.println("Field Access Expression: "+expression+" Type: "+TypeResolver.resolve(expression.asFieldAccessExpr().getScope()));	
 								/*FieldAccessExpr fieldAccessExpr = (FieldAccessExpr)expression;
@@ -120,7 +117,7 @@ public class ParameterCategoryVisitor extends VoidVisitorAdapter<Void>{
 						for(Expression expression:m.getArguments()) {
 							ParameterContent parameterContent = ParameterContent.get(expression);
 							System.out.println("+++++++++++++++++===Expression: "+expression+"  Parameter Content: "+parameterContent.getStringRep(expression));
-							System.out.println("Expression TYpe: "+parameterContent.getParameterExpressionType()+ "  Parameter Content: "+parameterContent.getAbsStringRep());
+							System.out.println("Expression Type: "+parameterContent.getParameterExpressionType()+ "  Parameter Content: "+parameterContent.getAbsStringRep());
 							
 						}
 					}

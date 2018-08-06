@@ -41,7 +41,31 @@ public class ParameterContent implements Serializable{
 	}
 
 	public void print() {
-		System.out.println("String Param Node: " + this.stringParamNode);
+		if(this instanceof StringLiteralContent) {
+			 ((StringLiteralContent)this).print();
+		}
+		else if(this instanceof CharLiteralContent) {
+			((StringLiteralContent)this).print();
+		}
+		else if(this instanceof NumberLiteralContent) {
+			((CharLiteralContent)this).print();
+		}
+		else if(this instanceof NullLiteralContent) {
+			((NullLiteralContent)this).print();
+		}
+		else if(this instanceof BooleanLiteralContent) {
+			((BooleanLiteralContent)this).print();
+		}
+		else if(this instanceof ThisExpressionContent) {
+		    ((ThisExpressionContent)this).print();
+		}
+		else if(this instanceof NameExprContent) {
+		    ((NameExprContent)this).print();
+		}
+		else System.out.println("ParameterContent [stringParamNode=" + stringParamNode + ", parent=" + parent
+				+ ", parameterExpressionType=" + parameterExpressionType + ", absStringRep=" + absStringRep
+				+ ", partlyAbsStringRep=" + partlyAbsStringRep + "]");
+		
 	}
 	
 	public String getAbsStringRep() {
@@ -220,7 +244,6 @@ public class ParameterContent implements Serializable{
 		}
 		else return null;
 	}
-
 	/*public  String getStringRep(Node node) {
 
 		if (expression instanceof SimpleName &&((SimpleName) expression).resolveTypeBinding()!=null)

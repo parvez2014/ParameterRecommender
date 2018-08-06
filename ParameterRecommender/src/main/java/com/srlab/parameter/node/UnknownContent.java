@@ -14,12 +14,11 @@ public class UnknownContent extends ParameterContent{
 	private String name;
 	private String absStringRep;
 	private String typeQualifiedName;
-	public UnknownContent(MethodCallExpr mi, MethodDeclaration md, Expression expression){
+	public UnknownContent(Expression expression){
 		super(expression);
 		name = expression.toString();
 		this.absStringRep ="unknown";
 		this.typeQualifiedName = null;
-		
 		JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
 		SymbolReference<? extends ResolvedValueDeclaration>  srResolvedValueDeclaration  = jpf.solve(expression);
 		if(srResolvedValueDeclaration.isSolved()) {

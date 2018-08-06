@@ -4,12 +4,12 @@ import java.io.File;
 
 public class Config {
 
-	public static final String ROOT_PATH = "E:\\research\\parameter_recommendation";
+	public static final String ROOT_PATH = "/media/parvez/IntelSSD/research/parameter_recommendation";
 	
-	public static final String REPOSITORY_NAME = "jhotdraw"; 
+	public static final String REPOSITORY_NAME = "jedit"; 
 	public static final String REPOSITORY_PATH = ROOT_PATH + File.separator + REPOSITORY_NAME;
 	public static final String TEST_REPOSITORY_PATH = "E:/research/parameter_recommendation/jhotdraw";//"E:\\research\\parameter_recommendation\\parameter_workspace";
-	public static final String MODEL_ENTRY_OUTPUT_PATH = "/media/parvez/ubuntu/models.txt";
+	public static final String MODEL_ENTRY_OUTPUT_PATH = "";
 	public static final String REPOSITORY_REVISION_PATH = ROOT_PATH + File.separator + REPOSITORY_NAME + "_revisions";
 	public static final String EXTERNAL_DEPENDENCY_PATH = ROOT_PATH + File.separator+ REPOSITORY_NAME + "_dependencies";
 	

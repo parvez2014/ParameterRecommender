@@ -44,7 +44,7 @@ public class ModelEntryCollectionDriver {
 		List<String> fileList = this.collectSourceFiles(new File(this.repositoryPath));
 		System.out.println("Total Collected Files: "+fileList.size());
 		int counter = 0;
-		for(String file:fileList.subList(0, 10)) {
+		for(String file:fileList) {
 			//first convert the file to compilation unit
 			System.out.println("Progress: "+ (counter++)+"/"+fileList.size());
 			CompilationUnit cu;
@@ -56,10 +56,12 @@ public class ModelEntryCollectionDriver {
 				for(TypeDeclaration typeDeclaration:cu.getTypes()) {
 					for(Object obj:typeDeclaration.getMethods()) {
 						if(obj instanceof MethodDeclaration) {
+							
 							MethodDeclaration md = (MethodDeclaration)obj;
 							MethodCallExprVisitor methodCallExprVisitor = new MethodCallExprVisitor(cu,file);
 							md.accept(methodCallExprVisitor,null);
-							modelEntryList.addAll(methodCallExprVisitor.getModelEntryList());
+							this.modelEntryList.addAll(methodCallExprVisitor.getModelEntryList());
+							
 							fileModelEntryList.addAll(methodCallExprVisitor.getModelEntryList());
 							fileParameterModelEntryList.addAll(methodCallExprVisitor.getParameterModelEntryList());
 							
@@ -67,9 +69,10 @@ public class ModelEntryCollectionDriver {
 					}	
 				}
 			} catch (Exception e) {
-				//e.printStackTrace();
+				e.printStackTrace();
 			}
 			this.hmFileToModelEntries.put(file,fileModelEntryList);
+			this.hmFileToParameterModelEntries.put(file,fileParameterModelEntryList);
 		}
 	}
 	

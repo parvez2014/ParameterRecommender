@@ -47,11 +47,6 @@ public class NumberLiteralContent extends ParameterContent {
 		}
 	}*/
 
-	private String getStringRep(CharLiteralExpr cl) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public String getName() {
 		return name;
 	}
@@ -61,7 +56,6 @@ public class NumberLiteralContent extends ParameterContent {
 	}
 
 	public void print() {
-		System.out.print("Name: " + this.getName());
-		System.out.println("Abstract String Rep: " + this.getAbsStringRep());
+		System.out.println("NumberLiteralContent [name=" + name + "]");
 	}
 }

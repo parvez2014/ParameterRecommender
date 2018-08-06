@@ -37,6 +37,7 @@ public class TrainingTestGenerator {
 		//to be safe side we clear both training and test list
 		this.testParameterModelEntryList.clear();
 		this.trainingParameterModelEntryList.clear();
+		this.testSourceFilePath.clear();
 		
 		List<String> javaFileList = new ArrayList(this.hmFileToParameterModelEntries.keySet());
 		Collections.shuffle(javaFileList);
@@ -46,7 +47,7 @@ public class TrainingTestGenerator {
 		for(String file:javaFileList) {
 			totalParameterModelEntries = totalParameterModelEntries + hmFileToParameterModelEntries.get(file).size();
 		}
-		
+		System.out.println("Total Model Entries: "+ totalParameterModelEntries );
 		//step-2: collect 80% of model entries for training
 		int totalTestModelEntries = (int)(totalParameterModelEntries*(0.20f));
 		int remains = totalTestModelEntries;
@@ -70,11 +71,25 @@ public class TrainingTestGenerator {
 	public List<String> getTestSourceFilePath() {
 		return testSourceFilePath;
 	}
+	
+	public HashMap<String, List<ParameterModelEntry>> getHmFileToParameterModelEntries() {
+		return hmFileToParameterModelEntries;
+	}
+
+	public List<ParameterModelEntry> getTestParameterModelEntryList() {
+		return testParameterModelEntryList;
+	}
+
+	public List<ParameterModelEntry> getTrainingParameterModelEntryList() {
+		return trainingParameterModelEntryList;
+	}
+
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		JSSConfigurator.getInstance().init(Config.TEST_REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH);
-		ModelEntryCollectionDriver modelEntryCollectionDriver = new ModelEntryCollectionDriver(Config.TEST_REPOSITORY_PATH);
+		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH);
+		ModelEntryCollectionDriver modelEntryCollectionDriver = new ModelEntryCollectionDriver(Config.REPOSITORY_PATH);
 		modelEntryCollectionDriver.run();
+		System.out.println("Total Model Entry Keys: "+modelEntryCollectionDriver.getHmFileToModelEntries().keySet().size());
 		TrainingTestGenerator trainingTestGenerator = new TrainingTestGenerator(modelEntryCollectionDriver.getHmFileToParameterModelEntries());
 		trainingTestGenerator.genTrainingTestDataSet();
 	}

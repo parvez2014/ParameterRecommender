@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.collections.map.MultiKeyMap;
 
@@ -16,11 +18,15 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
+import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.completioner.MethodCallEntity;
 import com.srlab.parameter.completioner.MethodCallExprVisitor;
 import com.srlab.parameter.completioner.ModelEntry;
+import com.srlab.parameter.completioner.ModelEntryCollectionDriver;
+import com.srlab.parameter.completioner.ParameterEntity;
 import com.srlab.parameter.completioner.ParameterModelEntry;
 import com.srlab.parameter.completioner.SourcePosition;
+import com.srlab.parameter.config.Config;
 import com.srlab.parameter.node.BooleanLiteralContent;
 import com.srlab.parameter.node.CastExpressionContent;
 import com.srlab.parameter.node.CharLiteralContent;
@@ -29,6 +35,7 @@ import com.srlab.parameter.node.MethodInvocationContent;
 import com.srlab.parameter.node.NameExprContent;
 import com.srlab.parameter.node.NullLiteralContent;
 import com.srlab.parameter.node.NumberLiteralContent;
+import com.srlab.parameter.node.ParameterContent;
 import com.srlab.parameter.node.QualifiedNameContent;
 import com.srlab.parameter.node.StringLiteralContent;
 import com.srlab.parameter.node.ThisExpressionContent;
@@ -73,9 +80,16 @@ public class ParameterRecommender {
 	//ideally we just need the test parameter model entries. But the problem is that we also need o know the 
 	// variables declared in the query context, method declaration and method call expression. These are not captured by
 	//parameter model entries. So we save the test files. All framework methods called in those files are being tested
-	public void test(List<String> filePathList, List<ParameterModelEntry> testParameterModelEntryList) {
+	public void test(List<ParameterModelEntry> testParameterModelEntryList) {
 		ResultCollector resultCollector = new ResultCollector();
-		for(String filePath: filePathList) {
+		int testCaseCounter = 0;
+		//Step-1: collect all files that contain the test data
+		Set<String> testFilePathSet = new HashSet(); 
+		for(ParameterModelEntry testParameterModelEntry:testParameterModelEntryList) {
+			testFilePathSet.add(testParameterModelEntry.getFilePath());
+		}
+		//Step-2: iterate through all test cases 
+		for(String filePath:testFilePathSet) {
 			try {
 				CompilationUnit cu = JavaParser.parse(new FileInputStream(filePath));
 				
@@ -87,7 +101,7 @@ public class ParameterRecommender {
 							md.accept(methodCallExprVisitor,null);
 							//collect parameter model entries and method call expressions associated to it
 							for (ParameterModelEntry parameterModelEntry:methodCallExprVisitor.getParameterModelEntryList()) {
-								//now check each test case
+								//we only test parameters of following expression type
 								if(parameterModelEntry.getParameterContent() instanceof NullLiteralContent
 									|| parameterModelEntry.getParameterContent() instanceof StringLiteralContent
 									|| parameterModelEntry.getParameterContent() instanceof CharLiteralContent
@@ -95,32 +109,29 @@ public class ParameterRecommender {
 									|| parameterModelEntry.getParameterContent() instanceof ThisExpressionContent
 									|| parameterModelEntry.getParameterContent() instanceof NameExprContent
 								) {
-									this.testInstance(parameterModelEntry, (MethodCallExpr)methodCallExprVisitor.getHmParaMeterModelEntryToMethodCallExr().get(parameterModelEntry), md, resultCollector);
+									System.out.println("Test Case Counter: "+(testCaseCounter++)+"/"+testParameterModelEntryList.size());
+									MethodCallExpr methodCallExpr = (MethodCallExpr)methodCallExprVisitor.getHmParaMeterModelEntryToMethodCallExpr().get(parameterModelEntry);
+									this.testInstance(parameterModelEntry, 	methodCallExpr, md, resultCollector);
 								}
 							}
 						}
 					}	
 				}
 			} catch (Exception e) {
-				//e.printStackTrace();
+				e.printStackTrace();
 			}
 		}
-		
-		/*for(ParameterModelEntry query:testParameterModelEntryList) {
-			//first find possible candidate list
-			List<ParameterModelEntry> possibleCandidateList = new ArrayList();
-			if(mkRecommenderModel.containsKey(query.getReceiverType(),
-					query.getModelEntry().getMethodCallEntity().getMethodDeclarationEntity().getName(),query.getParameterPosition())) {
-				possibleCandidateList = (List<ParameterModelEntry>)mkRecommenderModel.get(query.getReceiverType(),
-					query.getModelEntry().getMethodCallEntity().getMethodDeclarationEntity().getName(),
-					query.getParameterPosition());
-			}
-		}*/
+		resultCollector.print();
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void testInstance(ParameterModelEntry query, MethodCallExpr methodCallExpr, 
 			MethodDeclaration methodDeclaration, ResultCollector resultCollector) {
+		
 		List<ParameterModelEntry> possibleCandidateList = new ArrayList();
+		final HashMap<ParameterModelEntry, Float> hmParameterModelEntryToSimilarity = new HashMap();
+		final HashMap<String, Integer> hmFrequency = new HashMap();
+		
 		if(mkRecommenderModel.containsKey(query.getReceiverType(),
 				query.getModelEntry().getMethodCallEntity().getMethodDeclarationEntity().getName(),
 				query.getParameterPosition())) 
@@ -132,12 +143,10 @@ public class ParameterRecommender {
 			
 			//Step-2: collect simple names
 			SourcePosition sourcePosition = query.getModelEntry().getMethodCallEntity().getPosition();
-			SimpleNameCollector sn = new SimpleNameCollector(methodDeclaration,sourcePosition);
-			sn.run();
+			SimpleNameCollector simpleNameCollector = new SimpleNameCollector(methodDeclaration,sourcePosition);
+			simpleNameCollector.run();
 			
 			//Step-3: determine similarity between query and possible candidate list
-			final HashMap<ParameterModelEntry, Float> hmParameterModelEntryToSimilarity = new HashMap();
-			final HashMap<String, Integer> hmFrequency = new HashMap();
 			for(ParameterModelEntry parameterModelEntry:possibleCandidateList) {
 				float similarity = new CosineSimilarity().getSimilarity(query.getModelEntry().getNeighborList(),parameterModelEntry.getModelEntry().getNeighborList());
 				hmParameterModelEntryToSimilarity.put(parameterModelEntry, similarity);
@@ -150,6 +159,7 @@ public class ParameterRecommender {
 				}
 			}
 			
+			//Step-4: Sort parameter model entries
 			Collections.sort(possibleCandidateList, new Comparator<ParameterModelEntry>() {
 
 				public int compare(ParameterModelEntry o1, ParameterModelEntry o2) {
@@ -178,7 +188,17 @@ public class ParameterRecommender {
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 			boolean found = false;
 			int rank = -1;
-			for(ParameterModelEntry candidate:possibleCandidateList){
+			System.out.print("Query: ");
+			query.getParameterContent().print();
+			System.out.println("Query: "+query.getFilePath()+" "+query.getModelEntry());
+			for(int i=0;i<possibleCandidateList.size();i++){
+				ParameterModelEntry candidate = possibleCandidateList.get(i);
+				if(i<10) {
+					System.out.print("["+i+"] ");
+					candidate.getParameterContent().print();
+				}
+				rank++;
+				
 				if(candidate.getParameterContent() instanceof StringLiteralContent 
 						&& query.getParameterContent() instanceof StringLiteralContent 
 						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())){
@@ -215,23 +235,50 @@ public class ParameterRecommender {
 					found=true;
 					break;
 				}
+				else if(candidate.getParameterContent() instanceof NameExprContent && query.getParameterContent() instanceof NameExprContent) {
+					//now replace the variable
+					int parameterPosition = candidate.getParameterPosition();
+					ParameterEntity parameterEntity = query.getModelEntry().getMethodCallEntity().getMethodDeclarationEntity().getParameterList().get(parameterPosition);
+					String parameterName = parameterEntity.getName();
+					String typeQualifiedName = parameterEntity.getTypeDescriptor().getTypeQualifiedName();
+					NameExprContent nameExprContent =  (NameExprContent)candidate.getParameterContent();
+					
+					System.out.println("ParameterName: "+parameterName + "Type: "+nameExprContent.getTypeQualifiedName());
+					SimpleNameRecommender simpleNameRecommender = new SimpleNameRecommender(simpleNameCollector, "",nameExprContent.getTypeQualifiedName());
+					List<String> varList = simpleNameRecommender.recommend();
+										
+					System.out.println("Var List: "+varList);
+					if(varList.size()>0 && varList.get(0).split(":")[0].equals(((NameExprContent)query.getParameterContent()).getIdentifier())){
+						found = true;
+						break;
+					}
+					else if(varList.size()>=1 && varList.get(1).split(":")[0].equals(((NameExprContent)query.getParameterContent()).getIdentifier())){
+						rank++;
+						found = true;
+						break;
+					}
+					else if(varList.size()>=2 && varList.get(2).split(":")[0].equals(((NameExprContent)query.getParameterContent()).getIdentifier())){
+						rank++;
+						found = true;
+						break;
+					}
+				}
 				else if(candidate.getParameterContent() instanceof CastExpressionContent 
 						&& query.getParameterContent() instanceof CastExpressionContent 
 						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep().trim())){
 					found=true;
 					break;
 				}
-			
-			
-			
-			
-			
-			
-			
-			
+			}
+			if(found==true) {
+				resultCollector.add(rank);
+			}
+			else {
+				System.out.println("Recommendation Not Found");
+				resultCollector.add(-1);
 			}
 			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-			hmFrequency.clear();
+		/*	hmFrequency.clear();
 			//now remove the duplicated entry before recommendation
 			//we do not insert more than three variable name
 			int simplenameCounter=0;
@@ -374,12 +421,19 @@ public class ParameterRecommender {
 				else if(candidate.getParameterContent() instanceof MethodInvocationContent && query.getParameterContent() instanceof MethodInvocationContent){
 					
 				}
-			}
+			}*/
 		}
 	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-
+		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH);
+		ModelEntryCollectionDriver modelEntryCollectionDriver = new ModelEntryCollectionDriver(Config.REPOSITORY_PATH);
+		modelEntryCollectionDriver.run();
+		System.out.println("Total Model Entry Keys: "+modelEntryCollectionDriver.getHmFileToModelEntries().keySet().size());
+		TrainingTestGenerator trainingTestGenerator = new TrainingTestGenerator(modelEntryCollectionDriver.getHmFileToParameterModelEntries());
+		trainingTestGenerator.genTrainingTestDataSet();
+		ParameterRecommender parameterRecommender = new ParameterRecommender();
+		parameterRecommender.train(trainingTestGenerator.getTrainingParameterModelEntryList());
+		parameterRecommender.test(trainingTestGenerator.getTestParameterModelEntryList());
 	}
-
 }

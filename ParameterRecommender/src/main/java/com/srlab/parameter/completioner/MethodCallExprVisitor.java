@@ -58,6 +58,7 @@ import com.srlab.parameter.node.ParameterContent;
 import com.srlab.parameter.node.QualifiedNameContent;
 import com.srlab.parameter.node.StringLiteralContent;
 import com.srlab.parameter.node.ThisExpressionContent;
+import com.srlab.parameter.node.UnknownContent;
 
 
 public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
@@ -68,7 +69,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 	private CompilationUnit cu;
 	private HashMap<String,String> hmKeyword;
 	private HashMap<String, String> hmLineKeyword;
-	private HashMap hmParaMeterModelEntryToMethodCallExr;
+	private HashMap hmParaMeterModelEntryToMethodCallExpr;
 	public static int NL=4;
 	
 	public MethodCallExprVisitor(CompilationUnit _cu, String _path) {
@@ -76,7 +77,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 		this.cu = _cu;
 		this.modelEntryList = new LinkedList();
 		this.parameterModelEntryList = new LinkedList();
-		this.hmParaMeterModelEntryToMethodCallExr = new HashMap();
+		this.hmParaMeterModelEntryToMethodCallExpr = new HashMap();
 		this.filePath = _path;
 		this.hmKeyword = new HashMap();
 		this.hmLineKeyword = new HashMap();
@@ -127,8 +128,8 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 		this.filePath = filePath;
 	}
 	
-	public HashMap getHmParaMeterModelEntryToMethodCallExr() {
-		return hmParaMeterModelEntryToMethodCallExr;
+	public HashMap getHmParaMeterModelEntryToMethodCallExpr() {
+		return hmParaMeterModelEntryToMethodCallExpr;
 	}
 
 	public MethodDeclaration getMethodDeclarationContainer(Node node) {
@@ -568,23 +569,22 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 											ParameterContent parameterContent = new ThisExpressionContent((ThisExpr)expression);
 											parameterContentList.add(parameterContent);
 										}else {
-											throw new RuntimeException("Unknown Expression Exception Type");
+											System.out.println("Unknown Expression Type: "+expression);
+											ParameterContent parameterContent = new UnknownContent(expression);
+											parameterContentList.add(parameterContent);
 										}
-										
 									}
 								}
-								//System.out.println("Interesting ...");
 								
 								ModelEntry modelEntry = new ModelEntry(methodCallEntity, parameterContentList, neighborList, lineContent);
 								this.modelEntryList.add(modelEntry);
 								if(parameterContentList.size()>0) {
 									for(int i=0;i<parameterContentList.size();i++) {
-										ParameterModelEntry parameterModelEntry = new ParameterModelEntry(modelEntry, receiverType, i);
+										ParameterModelEntry parameterModelEntry = new ParameterModelEntry(modelEntry, receiverType, i, this.getFilePath());
 										this.parameterModelEntryList.add(parameterModelEntry);
-										this.hmParaMeterModelEntryToMethodCallExr.put(parameterModelEntry, m);
+										this.hmParaMeterModelEntryToMethodCallExpr.put(parameterModelEntry, m);
 									}
 								}
-								//System.out.println("Model Entry: "+modelEntry);
 							}
 						}
 					}

@@ -82,7 +82,7 @@ public class VariableMatchComparator implements Comparator<Object>{
 	 * @return the longest common substring
 	 */
 	private static String getLongestCommonSubstring(String first, String second) {
-		System.out.println("First "+first+" second"+second);
+		//System.out.println("First "+first+" second"+second);
 		String shorter = (first.length() <= second.length()) ? first : second;
 		String longer = shorter == first ? second : first;
 
