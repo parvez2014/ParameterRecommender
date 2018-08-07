@@ -14,24 +14,24 @@ public class NumberLiteralContent extends ParameterContent {
 	public NumberLiteralContent(DoubleLiteralExpr dl) {
 		super(dl);
 		name = dl.toString();
-		this.absStringRep = this.getStringRep(dl);
-		this.partlyAbsStringRep = dl.toString();
+		this.absStringRep = this.getAbsStringRep(dl);
+		this.partlyAbsStringRep = this.getStringRep(dl);
 		this.parent = null;
 	}
 
 	public NumberLiteralContent(LongLiteralExpr ll) {
 		super(ll);
 		name = ll.toString();
-		this.absStringRep = this.getStringRep(ll);
-		this.partlyAbsStringRep = ll.toString();
+		this.absStringRep = this.getAbsStringRep(ll);
+		this.partlyAbsStringRep = this.getStringRep(ll);
 		this.parent = null;
 	}
 
 	public NumberLiteralContent(IntegerLiteralExpr il) {
 		super(il);
 		name = il.toString();
-		this.absStringRep = this.getStringRep(il);
-		this.partlyAbsStringRep = il.toString();
+		this.absStringRep = this.getAbsStringRep(il);
+		this.partlyAbsStringRep = this.getStringRep(il);
 		this.parent = null;
 	}
 
@@ -49,10 +49,6 @@ public class NumberLiteralContent extends ParameterContent {
 
 	public String getName() {
 		return name;
-	}
-
-	public String getAbsStringRep() {
-		return absStringRep;
 	}
 
 	public void print() {

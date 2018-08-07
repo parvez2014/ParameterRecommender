@@ -15,17 +15,13 @@ public class CharLiteralContent extends ParameterContent {
 	public CharLiteralContent(CharLiteralExpr cl) {
 		super(cl);
 		name = cl.toString();
-		this.absStringRep = this.getStringRep(cl);
-		this.partlyAbsStringRep = cl.toString();
+		this.absStringRep = this.getAbsStringRep(cl);
+		this.partlyAbsStringRep = this.getStringRep(cl);
 		this.parent = null;
 	}
 
 	public String getName() {
 		return name;
-	}
-
-	public String getAbsStringRep() {
-		return absStringRep;
 	}
 
 	public void print() {

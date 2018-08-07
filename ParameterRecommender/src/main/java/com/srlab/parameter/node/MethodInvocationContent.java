@@ -11,6 +11,7 @@ import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.binding.TypeDescriptor;
+import com.srlab.parameter.binding.TypeResolver;
 
 public class MethodInvocationContent extends ParameterContent{
 	
@@ -24,21 +25,25 @@ public class MethodInvocationContent extends ParameterContent{
 		super(mi);
 		this.name = mi.toString();
 		this.methodName = mi.getName().getIdentifier();
-		this.absStringRep = this.getStringRep(mi);		
+		this.absStringRep = this.getAbsStringRep(mi);
+		this.partlyAbsStringRep = this.getStringRep(mi);
+		
 
 		this.receiver = null;
 		this.receiverTypeQualifiedName = null;
 		
 		if(mi.getScope().isPresent()) {
 			this.receiver = mi.getScope().toString();
-			JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
+			this.receiverTypeQualifiedName = TypeResolver.resolve( mi.getScope().get());
+			
+			/*JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
 			SymbolReference<? extends ResolvedValueDeclaration> srResolvedValueDeclaration  = jpf.solve(mi.getScope().get());
 			if(srResolvedValueDeclaration.isSolved()) {
 				ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
 				ResolvedType resolvedType = resolvedValueDeclaration.getType();
 				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 				this.receiverTypeQualifiedName = typeDescriptor.getTypeQualifiedName();
-			}
+			}*/
 			this.parent = ParameterContent.get(mi.getScope().get());
 		}
 	}

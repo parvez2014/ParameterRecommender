@@ -10,8 +10,8 @@ public class BooleanLiteralContent extends ParameterContent {
 	public BooleanLiteralContent(BooleanLiteralExpr nl) {
 		super(nl);
 		name = nl.toString();
-		this.absStringRep = this.getStringRep(nl);
-		this.partlyAbsStringRep = nl.toString();
+		this.absStringRep = this.getAbsStringRep(nl);
+		this.partlyAbsStringRep = this.getStringRep(nl);
 		this.parent = null;
 	}
 

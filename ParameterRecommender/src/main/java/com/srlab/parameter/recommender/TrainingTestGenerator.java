@@ -3,6 +3,7 @@ package com.srlab.parameter.recommender;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import com.srlab.parameter.binding.JSSConfigurator;
@@ -34,6 +35,47 @@ public class TrainingTestGenerator {
 	}
 	
 	public void genTrainingTestDataSet() {
+		this.testParameterModelEntryList.clear();
+		this.trainingParameterModelEntryList.clear();
+		this.testSourceFilePath.clear();
+		
+		HashSet<String> testPathSet = new HashSet();
+		List<String> javaFileList = new ArrayList(this.hmFileToParameterModelEntries.keySet());
+		
+		List<ParameterModelEntry> parameterModelEntryList = new ArrayList();
+		//step-1: collect all model entries
+		int totalParameterModelEntries = 0;
+		for(String file:javaFileList) {
+			totalParameterModelEntries = totalParameterModelEntries + hmFileToParameterModelEntries.get(file).size();
+			parameterModelEntryList.addAll(hmFileToParameterModelEntries.get(file));
+		}
+		
+		System.out.println("Total Parameter Model Entries: "+ totalParameterModelEntries );
+		
+		//step-2: collect 80% of model entries for training
+		Collections.shuffle(parameterModelEntryList);
+		int totalTestModelEntries = (int)(totalParameterModelEntries*(0.20f));
+		int remains = totalTestModelEntries;
+		for(ParameterModelEntry parameterModelEntry:parameterModelEntryList) {
+			if(remains>0) {
+				testPathSet.add(parameterModelEntry.getFilePath());
+				testParameterModelEntryList.add(parameterModelEntry);
+				remains--;
+			}
+			else {
+				trainingParameterModelEntryList.add(parameterModelEntry);
+		
+			}
+		}
+		
+		//Step-3: collect all source files that contain at least one test data set 
+		this.testSourceFilePath = new ArrayList(testPathSet);
+		System.out.println("Total Training Data Set: "+testParameterModelEntryList.size());
+		System.out.println("Total Test Data Set: "+trainingParameterModelEntryList.size());
+		System.out.println("Total Test Files: "+this.getTestSourceFilePath().size());
+	}
+	
+	public void genFileBasedTrainingTestDataSet() {
 		//to be safe side we clear both training and test list
 		this.testParameterModelEntryList.clear();
 		this.trainingParameterModelEntryList.clear();
@@ -49,7 +91,7 @@ public class TrainingTestGenerator {
 		}
 		System.out.println("Total Model Entries: "+ totalParameterModelEntries );
 		//step-2: collect 80% of model entries for training
-		int totalTestModelEntries = (int)(totalParameterModelEntries*(0.20f));
+		int totalTestModelEntries = (int)(totalParameterModelEntries*(0.40f));
 		int remains = totalTestModelEntries;
 		
 		//collect the testData

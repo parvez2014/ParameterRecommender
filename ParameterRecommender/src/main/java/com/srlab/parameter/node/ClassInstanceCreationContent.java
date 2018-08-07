@@ -45,7 +45,8 @@ public class ClassInstanceCreationContent extends ParameterContent{
 			this.scope = null;
 			this.scopeTypeQualifiedName =null;
 		}
-		this.absStringRep = "new "+ typeQualifiedName+"( )";
+		this.absStringRep = this.getAbsStringRep(objectCreationExpression);
+		this.partlyAbsStringRep = this.getStringRep(objectCreationExpression);
 	}
 	
 	public String getName() {

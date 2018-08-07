@@ -95,9 +95,9 @@ public class ParameterCategoryVisitor extends VoidVisitorAdapter<Void>{
 						JSSConfigurator.getInstance().getJpf().solve(m);
 				if(resolvedMethodDeclaration.isSolved()) {
 					String methodQualifiedName = resolvedMethodDeclaration.getCorrespondingDeclaration().getQualifiedName();
-					
+					String receiverType = TypeResolver.resolve(m.getScope().get());
 					//if this is a framework method call and the method has parameter we process it
-					if(m.getArguments().size()>0) {
+					if(Config.isInteresting(receiverType) && m.getArguments().size()>0) {
 						for(int i=0;i<m.getArguments().size();i++) {
 							Expression expression = m.getArguments().get(i);
 							System.out.println("**********Expression: "+expression+" TQN:"+TypeResolver.resolve(expression));

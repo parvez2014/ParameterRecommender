@@ -13,8 +13,8 @@ public class StringLiteralContent extends ParameterContent{
 	public StringLiteralContent(StringLiteralExpr sl){
 		super(sl);
 		name = sl.toString();
-		absStringRep = this.getStringRep(sl);
-		this.partlyAbsStringRep = sl.toString();
+		absStringRep = this.getAbsStringRep(sl);
+		this.partlyAbsStringRep = this.getStringRep(sl);
 		this.parent = null;
 	}
 	public String getName() {

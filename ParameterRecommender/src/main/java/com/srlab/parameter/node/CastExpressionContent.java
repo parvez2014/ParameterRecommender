@@ -39,7 +39,8 @@ public class CastExpressionContent extends ParameterContent {
 			typeDescriptor = new TypeDescriptor(srResolvedvalueDeclaration.getCorrespondingDeclaration().getType());
 			this.expressionTypeQualifiedName = typeDescriptor.getTypeQualifiedName();
 		}
-		this.absStringRep = this.getStringRep(ce);
+		this.absStringRep = this.getAbsStringRep(ce);
+		this.partlyAbsStringRep = this.getStringRep(ce);
 	}
 
 	public String getName() {

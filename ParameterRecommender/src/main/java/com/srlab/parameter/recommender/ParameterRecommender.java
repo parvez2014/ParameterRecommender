@@ -82,6 +82,14 @@ public class ParameterRecommender {
 	//parameter model entries. So we save the test files. All framework methods called in those files are being tested
 	public void test(List<ParameterModelEntry> testParameterModelEntryList) {
 		ResultCollector resultCollector = new ResultCollector();
+		MultiKeyMap mkTestIndex = new MultiKeyMap();
+		//Step-0: Index test parameter model entries
+		for(ParameterModelEntry parameterModelEntry:testParameterModelEntryList) {
+			SourcePosition methodCallSourcePosition = parameterModelEntry.getModelEntry().getMethodCallEntity().getPosition();
+			mkTestIndex.put(parameterModelEntry.getFilePath(),methodCallSourcePosition.line+":"+methodCallSourcePosition.column, parameterModelEntry.getParameterPosition(),parameterModelEntry);
+		}
+		
+		
 		int testCaseCounter = 0;
 		//Step-1: collect all files that contain the test data
 		Set<String> testFilePathSet = new HashSet(); 
@@ -102,14 +110,21 @@ public class ParameterRecommender {
 							//collect parameter model entries and method call expressions associated to it
 							for (ParameterModelEntry parameterModelEntry:methodCallExprVisitor.getParameterModelEntryList()) {
 								//we only test parameters of following expression type
-								if(parameterModelEntry.getParameterContent() instanceof NullLiteralContent
-									|| parameterModelEntry.getParameterContent() instanceof StringLiteralContent
-									|| parameterModelEntry.getParameterContent() instanceof CharLiteralContent
-									|| parameterModelEntry.getParameterContent() instanceof NumberLiteralContent
-									|| parameterModelEntry.getParameterContent() instanceof ThisExpressionContent
-									|| parameterModelEntry.getParameterContent() instanceof NameExprContent
+								SourcePosition sourcePosition  = parameterModelEntry.getModelEntry().getMethodCallEntity().getPosition();
+								if(	mkTestIndex.containsKey(parameterModelEntry.getFilePath(),sourcePosition.line+":"+sourcePosition.column,parameterModelEntry.getParameterPosition())//parameterModelEntry.getParameterContent() instanceof ClassInstanceCreationContent
+									&& parameterModelEntry.getParameterContent() instanceof QualifiedNameContent
+									//parameterModelEntry.getParameterContent()    instanceof NullLiteralContent
+									//|| parameterModelEntry.getParameterContent() instanceof StringLiteralContent
+									//|| parameterModelEntry.getParameterContent() instanceof CharLiteralContent
+									//|| parameterModelEntry.getParameterContent() instanceof NumberLiteralContent
+									//|| parameterModelEntry.getParameterContent() instanceof BooleanLiteralContent
+									
+									//|| parameterModelEntry.getParameterContent() instanceof ThisExpressionContent
+									//parameterModelEntry.getParameterContent() instanceof NameExprContent
+									//parameterModelEntry.getParameterContent() instanceof MethodInvocationContent
 								) {
 									System.out.println("Test Case Counter: "+(testCaseCounter++)+"/"+testParameterModelEntryList.size());
+									System.out.println("Test Case: " + (parameterModelEntry.getParameterContent().getStringParamNode()));
 									MethodCallExpr methodCallExpr = (MethodCallExpr)methodCallExprVisitor.getHmParaMeterModelEntryToMethodCallExpr().get(parameterModelEntry);
 									this.testInstance(parameterModelEntry, 	methodCallExpr, md, resultCollector);
 								}
@@ -122,6 +137,54 @@ public class ParameterRecommender {
 			}
 		}
 		resultCollector.print();
+	}
+	
+	public String getNameReplacedStringExpr(ParameterContent parameterContent, SimpleNameCollector snc) {
+		
+		if(parameterContent instanceof QualifiedNameContent) {
+			QualifiedNameContent qnc = (QualifiedNameContent)parameterContent;
+			SimpleNameRecommender simpleNameRecommender = new SimpleNameRecommender(snc,"",qnc.getTypeQualifiedName());
+			List<String> varList = simpleNameRecommender.recommend();
+			System.out.println("Scope: "+qnc.getScope());
+			System.out.println("identifier: "+qnc.getIdentifier());
+			
+			if(Character.isUpperCase(qnc.getScope().charAt(0))&& Character.isUpperCase(qnc.getIdentifier().charAt(0))) {
+				return qnc.getScope().toString()+"."+qnc.getIdentifier();
+			}
+			else if (Character.isUpperCase(qnc.getScope().charAt(0))){
+				return qnc.getScope()+"."+varList.get(0);
+			}
+			else {
+				throw new RuntimeException("Cannot Handle : "+qnc);
+			}
+		}
+		else if(parameterContent instanceof NameExprContent) {
+			NameExprContent nameExprContent = (NameExprContent) parameterContent;
+			//System.out.println("NameExprContent: "+nameExprContent.getIdentifier()+" Name: "+nameExprContent.getName());
+			if(Character.isUpperCase(nameExprContent.getIdentifier().charAt(0))) {
+				return nameExprContent.getIdentifier();
+			}
+			else {
+				SimpleNameRecommender simpleNameRecommender = new SimpleNameRecommender(snc,"",nameExprContent.getTypeQualifiedName());
+				List<String> varList = simpleNameRecommender.recommend();
+				if(varList.size()>0) {
+					return varList.get(0).split(":")[0];
+				}
+				else return nameExprContent.getIdentifier();
+			}
+		}
+		else if(parameterContent instanceof ClassInstanceCreationContent) {
+			System.out.println("Class Instance Creation: "+parameterContent.getAbsStringRep());
+			return parameterContent.getAbsStringRep();
+		}
+		else if(parameterContent instanceof MethodInvocationContent) {
+			MethodInvocationContent mic = (MethodInvocationContent)parameterContent;
+			if(mic.getParent()!=null) {
+				return this.getNameReplacedStringExpr(mic.getParent(), snc)+"."+mic.getMethodName()+"("+")";
+			}
+			else return mic.getMethodName()+"("+")";
+		}
+		else return null;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -140,7 +203,7 @@ public class ParameterRecommender {
 			possibleCandidateList = (List<ParameterModelEntry>)mkRecommenderModel.get(query.getReceiverType(),
 				query.getModelEntry().getMethodCallEntity().getMethodDeclarationEntity().getName(),
 				query.getParameterPosition());
-			
+			System.out.println("PossibleEntryList Size: "+possibleCandidateList.size());
 			//Step-2: collect simple names
 			SourcePosition sourcePosition = query.getModelEntry().getMethodCallEntity().getPosition();
 			SimpleNameCollector simpleNameCollector = new SimpleNameCollector(methodDeclaration,sourcePosition);
@@ -193,12 +256,12 @@ public class ParameterRecommender {
 			System.out.println("Query: "+query.getFilePath()+" "+query.getModelEntry());
 			for(int i=0;i<possibleCandidateList.size();i++){
 				ParameterModelEntry candidate = possibleCandidateList.get(i);
-				if(i<10) {
+				if(i<20) {
 					System.out.print("["+i+"] ");
 					candidate.getParameterContent().print();
 				}
 				rank++;
-				
+				System.out.println("Candidate: "+candidate);
 				if(candidate.getParameterContent() instanceof StringLiteralContent 
 						&& query.getParameterContent() instanceof StringLiteralContent 
 						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())){
@@ -247,21 +310,30 @@ public class ParameterRecommender {
 					SimpleNameRecommender simpleNameRecommender = new SimpleNameRecommender(simpleNameCollector, "",nameExprContent.getTypeQualifiedName());
 					List<String> varList = simpleNameRecommender.recommend();
 										
-					System.out.println("Var List: "+varList);
+					System.out.println("Rank: "+rank +"  Var List: "+varList);
 					if(varList.size()>0 && varList.get(0).split(":")[0].equals(((NameExprContent)query.getParameterContent()).getIdentifier())){
 						found = true;
+						 System.out.println("Rank: "+rank);
 						break;
 					}
-					else if(varList.size()>=1 && varList.get(1).split(":")[0].equals(((NameExprContent)query.getParameterContent()).getIdentifier())){
+					else if(varList.size()>1 && varList.get(1).split(":")[0].equals(((NameExprContent)query.getParameterContent()).getIdentifier())){
 						rank++;
+						 System.out.println("Rank: "+rank);
 						found = true;
 						break;
 					}
-					else if(varList.size()>=2 && varList.get(2).split(":")[0].equals(((NameExprContent)query.getParameterContent()).getIdentifier())){
+					else if(varList.size()>2 && varList.get(2).split(":")[0].equals(((NameExprContent)query.getParameterContent()).getIdentifier())){
 						rank++;
+						 System.out.println("Rank: "+rank);
 						found = true;
 						break;
 					}
+				}
+				else if(candidate.getParameterContent() instanceof ThisExpressionContent 
+						&& query.getParameterContent() instanceof ThisExpressionContent
+						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())) {
+					   found = true;
+					   break;
 				}
 				else if(candidate.getParameterContent() instanceof CastExpressionContent 
 						&& query.getParameterContent() instanceof CastExpressionContent 
@@ -269,12 +341,43 @@ public class ParameterRecommender {
 					found=true;
 					break;
 				}
+				
+				else if(candidate.getParameterContent() instanceof ClassInstanceCreationContent 
+						&& query.getParameterContent() instanceof ClassInstanceCreationContent) {
+					if(this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector).equals(query.getParameterContent().getAbsStringRep())) {
+						 found = true;
+						 break;
+					 }
+				}
+				else if(candidate.getParameterContent() instanceof QualifiedNameContent 
+						&& query.getParameterContent() instanceof QualifiedNameContent) {
+					//System.out.println("Query Abs String: "+query.getParameterContent().getAbsStringRep());
+					//System.out.println("Rec: "+candidate.getParameterContent().getAbsStringRep()+" :NameReplaced: "+this.getNameReplacedStringExpr(candidate.getParameterContent(), simpleNameCollector));
+					
+					if(this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector).equals(query.getParameterContent().getAbsStringRep())) {
+						 found = true;
+						 break;
+					 }
+				}
+				else if(candidate.getParameterContent() instanceof MethodInvocationContent
+						&& query.getParameterContent() instanceof MethodInvocationContent
+						) {
+					System.out.println("Query Abs String: "+query.getParameterContent().getAbsStringRep());
+					System.out.println("Rec: "+candidate.getParameterContent().getAbsStringRep()+" :NameReplaced: "+this.getNameReplacedStringExpr(candidate.getParameterContent(), simpleNameCollector));
+				
+					if(this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector).equals(query.getParameterContent().getAbsStringRep())) {
+						 found = true;
+						 System.out.println("Rank: "+rank);
+						 break;
+					 }
+				}
+				
 			}
 			if(found==true) {
 				resultCollector.add(rank);
 			}
 			else {
-				System.out.println("Recommendation Not Found");
+				System.out.println("Recommendation Not Found ");
 				resultCollector.add(-1);
 			}
 			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -434,6 +537,6 @@ public class ParameterRecommender {
 		trainingTestGenerator.genTrainingTestDataSet();
 		ParameterRecommender parameterRecommender = new ParameterRecommender();
 		parameterRecommender.train(trainingTestGenerator.getTrainingParameterModelEntryList());
-		parameterRecommender.test(trainingTestGenerator.getTestParameterModelEntryList());
+		parameterRecommender.test(trainingTestGenerator.getTrainingParameterModelEntryList());
 	}
 }

@@ -37,8 +37,9 @@ public class QualifiedNameContent extends ParameterContent {
 		ResolvedType resolvedType = resolvedValueDeclaration.getType();
 		TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 		this.typeQualifiedName = typeDescriptor.getTypeQualifiedName();
-		this.absStringRep = this.getStringRep(fieldAccessExpr);
-		System.out.println("Abstract STring Rep in QualifiedNameContent: "+fieldAccessExpr.getScope());
+		this.partlyAbsStringRep = this.getStringRep(fieldAccessExpr);
+		this.absStringRep = this.getAbsStringRep(fieldAccessExpr);
+		System.out.println("Abstract String Rep in QualifiedNameContent: "+fieldAccessExpr.getScope());
 		
 		JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
 		srResolvedValueDeclaration = jpf.solve(fieldAccessExpr.getScope().asNameExpr());

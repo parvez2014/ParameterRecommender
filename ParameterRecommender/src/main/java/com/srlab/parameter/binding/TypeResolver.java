@@ -76,7 +76,6 @@ public class TypeResolver {
 			NameExpr nameExpr = expression.asNameExpr();
 			Optional<Node> parent = nameExpr.getParentNode();
 			
-			
 			SymbolReference<? extends ResolvedValueDeclaration> srResolvedValueDeclaration = JSSConfigurator.getInstance().getJpf().solve(expression.asNameExpr());
 			if(srResolvedValueDeclaration.isSolved()==false) {
 				if(parent.isPresent() && parent.get() instanceof FieldAccessExpr) {

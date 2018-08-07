@@ -18,6 +18,7 @@ public class UnknownContent extends ParameterContent{
 		super(expression);
 		name = expression.toString();
 		this.absStringRep ="unknown";
+		this.partlyAbsStringRep = "unknown";
 		this.typeQualifiedName = null;
 		JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
 		SymbolReference<? extends ResolvedValueDeclaration>  srResolvedValueDeclaration  = jpf.solve(expression);

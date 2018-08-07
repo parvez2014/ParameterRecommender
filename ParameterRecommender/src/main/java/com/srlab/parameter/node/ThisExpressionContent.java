@@ -49,18 +49,17 @@ public class ThisExpressionContent extends ParameterContent{
 			this.thisQualifiedName = resolvedTypeDeclaration.getQualifiedName();
 		}
 	
-		if(this.classQualifier!=null)
+		/*if(this.classQualifier!=null)
 			this.absStringRep = this.classQualifier+"."+"this";
 		else {
 			this.absStringRep = "this";		
-		}
+		}*/
+		this.absStringRep = this.getAbsStringRep(thisExpr);
+		this.partlyAbsStringRep = this.getStringRep(thisExpr);
 	}
 	
 	public String getName() {
 		return name;
-	}
-	public String getAbsStringRep() {
-		return absStringRep;
 	}
 	
 	public String getClassQualifier() {

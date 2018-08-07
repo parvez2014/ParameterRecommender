@@ -11,17 +11,14 @@ public class NullLiteralContent extends ParameterContent{
 	public NullLiteralContent(NullLiteralExpr nl){
 		super(nl);
 		name = nl.toString();
-		this.absStringRep = this.getStringRep(nl);
-		this.partlyAbsStringRep = nl.toString();
+		this.absStringRep = this.getAbsStringRep(nl);
+		this.partlyAbsStringRep = this.getStringRep(nl);
 		this.parent = null;
 	}
 	public String getName() {
 		return name;
 	}
 	
-	public String getAbsStringRep() {
-		return absStringRep;
-	}
 	public void print(){
 		System.out.print("NULL LITERAL: Name: "+this.getName()+" Abstract String Rep: "+this.getAbsStringRep());
 	}
