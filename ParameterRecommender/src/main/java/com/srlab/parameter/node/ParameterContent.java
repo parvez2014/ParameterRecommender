@@ -30,15 +30,12 @@ import com.srlab.parameter.binding.TypeDescriptor;
 import com.srlab.parameter.category.ParameterExpressionCategorizer;
 
 public class ParameterContent implements Serializable{
-	protected String stringParamNode;
+	protected String rawStringRep;
 	protected ParameterContent parent;
 	private String parameterExpressionType;
-	protected String absStringRep;
-	protected String partlyAbsStringRep;
+	protected String absStringRep; //this one does not transform/encode literal values
+	protected String absStringRepWithLiteral; //this one encode literal values
 	
-	public String getStringParamNode() {
-		return stringParamNode;
-	}
 
 	public void print() {
 		if(this instanceof StringLiteralContent) {
@@ -62,12 +59,16 @@ public class ParameterContent implements Serializable{
 		else if(this instanceof NameExprContent) {
 		    ((NameExprContent)this).print();
 		}
-		else System.out.println("ParameterContent [stringParamNode=" + stringParamNode + ", parent=" + parent
+		else System.out.println("ParameterContent [stringParamNode=" + rawStringRep + ", parent=" + parent
 				+ ", parameterExpressionType=" + parameterExpressionType + ", absStringRep=" + absStringRep
-				+ ", partlyAbsStringRep=" + partlyAbsStringRep + "]");
+				+ ", partlyAbsStringRep=" + absStringRepWithLiteral + "]");
 		
 	}
 	
+	public String getRawStringRep() {
+		return rawStringRep;
+	}
+
 	public String getAbsStringRep() {
 		return absStringRep;
 	}
@@ -81,11 +82,11 @@ public class ParameterContent implements Serializable{
 	}
 
 	public String getPartlyAbsStringRep() {
-		return partlyAbsStringRep;
+		return absStringRepWithLiteral;
 	}
 
 	public ParameterContent(Expression expression) {
-		this.stringParamNode = expression.toString();
+		this.rawStringRep = expression.toString();
 		this.parameterExpressionType = ParameterExpressionCategorizer.getParameterExpressionType(expression);
 	}
 	public static ParameterContent get(Expression expression) {
@@ -132,7 +133,7 @@ public class ParameterContent implements Serializable{
 	}
 
 	//The problem with Java symbol solver is that if the NameExpr indicates a type name, such as BufferedReder, it can solve the type of BufferedReader
-	public String getStringRep(Expression expression) {
+	public String getAbsStringRepWithLiteral(Expression expression) {
 		if (expression instanceof StringLiteralExpr) {
 			return "String";
 		} else if (expression instanceof NullLiteralExpr) {
@@ -170,7 +171,7 @@ public class ParameterContent implements Serializable{
 			CastExpr ce = (CastExpr)expression;
 			ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(ce.getType());
 			TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-			return "("+typeDescriptor.getTypeQualifiedName()+")"+this.getStringRep(ce.getExpression());
+			return "("+typeDescriptor.getTypeQualifiedName()+")"+this.getAbsStringRepWithLiteral(ce.getExpression());
 		}
 		else if(expression instanceof ObjectCreationExpr) {
 			ObjectCreationExpr objectCreationExpr = (ObjectCreationExpr)expression;
@@ -182,13 +183,13 @@ public class ParameterContent implements Serializable{
 			else {
 				ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpr.getType());
 				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-				return "new_"+this.getStringRep(objectCreationExpr.getScope().get())+"."+typeDescriptor.getTypeQualifiedName()+"("+")";
+				return "new_"+this.getAbsStringRepWithLiteral(objectCreationExpr.getScope().get())+"."+typeDescriptor.getTypeQualifiedName()+"("+")";
 			}
 		}
 		else if(expression instanceof MethodCallExpr) {
 			MethodCallExpr methodCallExpr = (MethodCallExpr)expression;
 			if(((MethodCallExpr) expression).getScope().isPresent()) {
-				return this.getStringRep(methodCallExpr.getScope().get())+"."+methodCallExpr.getName()+"("+")";
+				return this.getAbsStringRepWithLiteral(methodCallExpr.getScope().get())+"."+methodCallExpr.getName()+"("+")";
 			}
 			else {
 				return methodCallExpr.getName()+"("+")";
@@ -211,7 +212,7 @@ public class ParameterContent implements Serializable{
 			else if (Character.isUpperCase(fieldAccessExpr.getScope().toString().charAt(0))){
 				return fieldAccessExpr.getScope().toString()+"."+"SN:"+typeDescriptor.getTypeQualifiedName();
 			}
-			else return this.getStringRep(fieldAccessExpr.getScope())+"."+"SN:"+typeDescriptor.getTypeQualifiedName();
+			else return this.getAbsStringRepWithLiteral(fieldAccessExpr.getScope())+"."+"SN:"+typeDescriptor.getTypeQualifiedName();
 		}
 		else if(expression instanceof CharLiteralExpr) {
 			return "Char";
@@ -236,7 +237,7 @@ public class ParameterContent implements Serializable{
 						return null;
 				} else if (thisExpr.getClassExpr().get() instanceof FieldAccessExpr) { // a.b.this
 					FieldAccessExpr fieldAccessExpr = (FieldAccessExpr) thisExpr.getClassExpr().get();
-					return this.getStringRep(fieldAccessExpr)+"."+"this";
+					return this.getAbsStringRepWithLiteral(fieldAccessExpr)+"."+"this";
 				} else
 					return null;
 			}
@@ -315,7 +316,7 @@ public class ParameterContent implements Serializable{
 			else if (Character.isUpperCase(fieldAccessExpr.getScope().toString().charAt(0))){
 				return fieldAccessExpr.getScope().toString()+"."+"SN:"+typeDescriptor.getTypeQualifiedName();
 			}
-			else return this.getStringRep(fieldAccessExpr.getScope())+"."+"SN:"+typeDescriptor.getTypeQualifiedName();
+			else return this.getAbsStringRepWithLiteral(fieldAccessExpr.getScope())+"."+"SN:"+typeDescriptor.getTypeQualifiedName();
 		}
 		
 	    else if (expression instanceof ThisExpr) {

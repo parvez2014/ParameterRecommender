@@ -37,7 +37,7 @@ public class QualifiedNameContent extends ParameterContent {
 		ResolvedType resolvedType = resolvedValueDeclaration.getType();
 		TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 		this.typeQualifiedName = typeDescriptor.getTypeQualifiedName();
-		this.partlyAbsStringRep = this.getStringRep(fieldAccessExpr);
+		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(fieldAccessExpr);
 		this.absStringRep = this.getAbsStringRep(fieldAccessExpr);
 		System.out.println("Abstract String Rep in QualifiedNameContent: "+fieldAccessExpr.getScope());
 		

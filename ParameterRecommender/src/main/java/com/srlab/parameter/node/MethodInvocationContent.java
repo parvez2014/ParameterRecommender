@@ -26,7 +26,7 @@ public class MethodInvocationContent extends ParameterContent{
 		this.name = mi.toString();
 		this.methodName = mi.getName().getIdentifier();
 		this.absStringRep = this.getAbsStringRep(mi);
-		this.partlyAbsStringRep = this.getStringRep(mi);
+		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(mi);
 		
 
 		this.receiver = null;

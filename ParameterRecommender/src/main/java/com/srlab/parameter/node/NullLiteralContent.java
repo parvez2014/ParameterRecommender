@@ -7,19 +7,16 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NullLiteralExpr;
 
 public class NullLiteralContent extends ParameterContent{
-	private String name;
+	
 	public NullLiteralContent(NullLiteralExpr nl){
 		super(nl);
-		name = nl.toString();
+		this.rawStringRep = nl.toString();
 		this.absStringRep = this.getAbsStringRep(nl);
-		this.partlyAbsStringRep = this.getStringRep(nl);
+		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(nl);
 		this.parent = null;
 	}
-	public String getName() {
-		return name;
-	}
-	
+
 	public void print(){
-		System.out.print("NULL LITERAL: Name: "+this.getName()+" Abstract String Rep: "+this.getAbsStringRep());
+		System.out.print("NULL LITERAL: Name: "+this.getRawStringRep()+" Abstract String Rep: "+this.getAbsStringRep());
 	}
 }

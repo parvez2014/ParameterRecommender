@@ -30,9 +30,6 @@ public class TypeResolver {
 
 	public static String resolve(Expression expression) {
 		
-		/*if(expression instanceof AnnotationExpr) {
-			
-		}*/
 		if(expression instanceof ArrayAccessExpr) {
 			System.out.println("Type of Array Access Expr: "+JSSConfigurator.getInstance().getJpf().getType(expression.asArrayAccessExpr()));
 			System.out.println("ArrayAccessExpr: "+expression+"  Name: "+expression.asArrayAccessExpr().getName()+"  Index:"+expression.asArrayAccessExpr().getIndex());
@@ -108,9 +105,7 @@ public class TypeResolver {
 			ResolvedTypeDeclaration resolvedTypeDeclaration = sr.getCorrespondingDeclaration();
 			return resolvedTypeDeclaration.getQualifiedName();
 		}
-		//else if(expression instanceof VariableDeclarationExpr) {
-		//	
-		//}
+		
 		else if(expression instanceof ObjectCreationExpr) {
 			SymbolReference<? extends ResolvedConstructorDeclaration> sr = JSSConfigurator.getInstance().getJpf().solve(expression.asObjectCreationExpr());
 			ResolvedConstructorDeclaration resolvedConstructorDeclaration = sr.getCorrespondingDeclaration();

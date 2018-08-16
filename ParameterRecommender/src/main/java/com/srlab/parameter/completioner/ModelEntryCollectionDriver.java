@@ -100,7 +100,7 @@ public class ModelEntryCollectionDriver {
 	}
 
 	public static void main(String args[]) {
-		ModelEntryCollectionDriver modelEntryCollectionDriver = new ModelEntryCollectionDriver(Config.TEST_REPOSITORY_PATH);
+		ModelEntryCollectionDriver modelEntryCollectionDriver = new ModelEntryCollectionDriver(Config.REPOSITORY_PATH);
 		modelEntryCollectionDriver.run();
 		System.out.println("Total Collected Model Entry List: "+modelEntryCollectionDriver.getModelEntryList().size());
 		List<ModelEntry> modelEntryList = modelEntryCollectionDriver.getModelEntryList();

@@ -24,7 +24,7 @@ public class CastExpressionContent extends ParameterContent {
 		this.castTypeQualifiedName = null;
 		this.expressionTypeQualifiedName = null;
 
-		this.absStringRep = this.getStringRep(ce);
+		this.absStringRep = this.getAbsStringRepWithLiteral(ce);
 		this.castQualifier = ce.getType().toString();
 
 		ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(ce.getType());
@@ -40,7 +40,7 @@ public class CastExpressionContent extends ParameterContent {
 			this.expressionTypeQualifiedName = typeDescriptor.getTypeQualifiedName();
 		}
 		this.absStringRep = this.getAbsStringRep(ce);
-		this.partlyAbsStringRep = this.getStringRep(ce);
+		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(ce);
 	}
 
 	public String getName() {

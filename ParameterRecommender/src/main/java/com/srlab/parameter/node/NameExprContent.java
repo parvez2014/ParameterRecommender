@@ -35,7 +35,7 @@ public class NameExprContent extends ParameterContent{
 		this.name = sn.toString();
 		this.identifier = sn.getIdentifier();
 		this.absStringRep = this.getAbsStringRep(nameExpr);
-		this.partlyAbsStringRep = this.getStringRep(nameExpr);
+		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(nameExpr);
 		this.typeQualifiedName = TypeResolver.resolve(nameExpr);
 		this.parent = null;
 		

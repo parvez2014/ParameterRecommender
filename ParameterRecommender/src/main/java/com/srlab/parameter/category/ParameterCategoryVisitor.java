@@ -116,7 +116,7 @@ public class ParameterCategoryVisitor extends VoidVisitorAdapter<Void>{
 						
 						for(Expression expression:m.getArguments()) {
 							ParameterContent parameterContent = ParameterContent.get(expression);
-							System.out.println("+++++++++++++++++===Expression: "+expression+"  Parameter Content: "+parameterContent.getStringRep(expression));
+							System.out.println("+++++++++++++++++===Expression: "+expression+"  Parameter Content: "+parameterContent.getAbsStringRepWithLiteral(expression));
 							System.out.println("Expression Type: "+parameterContent.getParameterExpressionType()+ "  Parameter Content: "+parameterContent.getAbsStringRep());
 							
 						}

@@ -473,6 +473,33 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 			return input.substring(idxStart,curIdx);
 		}
 		
+		public String collectAstContext(MethodCallExpr methodCallExpr) {
+			StringBuffer astContextBuffer = new StringBuffer("");
+			Node  parent = methodCallExpr;
+			while(parent!=null) {
+				if(parent instanceof MethodCallExpr) {
+					astContextBuffer.append(methodCallExpr.getName().getIdentifier());
+					astContextBuffer.append(" ");
+				}
+				else if(parent instanceof MethodDeclaration) {
+					
+					MethodDeclaration methodDeclaration = (MethodDeclaration)parent;
+					astContextBuffer.append(methodDeclaration.getName().getIdentifier());
+					astContextBuffer.append(" ");		
+				}
+				else if(parent instanceof MethodDeclaration) {
+					
+					MethodDeclaration methodDeclaration = (MethodDeclaration)parent;
+					astContextBuffer.append(methodDeclaration.getName().getIdentifier());
+					astContextBuffer.append(" ");		
+				}
+				if(parent.getParentNode().isPresent()) parent = parent.getParentNode().get();
+				else parent = null;
+			}
+			
+			return astContextBuffer;
+		}
+		
 		@Override
 		public void visit(MethodCallExpr m, Void arg) {
 			// TODO Auto-generated method stub

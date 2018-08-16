@@ -9,22 +9,16 @@ import com.github.javaparser.ast.expr.StringLiteralExpr;
 
 public class StringLiteralContent extends ParameterContent{
 	
-	private String name;
-	public StringLiteralContent(StringLiteralExpr sl){
+public StringLiteralContent(StringLiteralExpr sl){
 		super(sl);
-		name = sl.toString();
-		absStringRep = this.getAbsStringRep(sl);
-		this.partlyAbsStringRep = this.getStringRep(sl);
+		this.rawStringRep = sl.toString();
+		this.absStringRep = this.getAbsStringRep(sl);
+		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(sl);
 		this.parent = null;
 	}
-	public String getName() {
-		return name;
-	}
-	public String getAbsStringRep() {
-		return absStringRep;
-	}
-	public void print(){
-		System.out.print("STRING LITERAL: Name: "+this.getName()+" Abstract String Rep: "+this.getAbsStringRep());
+
+public void print(){
+		System.out.print("STRING LITERAL: Name: "+this.getRawStringRep()+" Abstract String Rep: "+this.getAbsStringRep());
 	}
 }
 

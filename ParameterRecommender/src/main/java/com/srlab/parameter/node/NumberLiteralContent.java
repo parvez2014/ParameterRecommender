@@ -10,28 +10,28 @@ import com.github.javaparser.ast.expr.LongLiteralExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 
 public class NumberLiteralContent extends ParameterContent {
-	private String name;
+	
 	public NumberLiteralContent(DoubleLiteralExpr dl) {
 		super(dl);
-		name = dl.toString();
+		this.rawStringRep = dl.toString();
 		this.absStringRep = this.getAbsStringRep(dl);
-		this.partlyAbsStringRep = this.getStringRep(dl);
+		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(dl);
 		this.parent = null;
 	}
 
 	public NumberLiteralContent(LongLiteralExpr ll) {
 		super(ll);
-		name = ll.toString();
+		this.rawStringRep = ll.toString();
 		this.absStringRep = this.getAbsStringRep(ll);
-		this.partlyAbsStringRep = this.getStringRep(ll);
+		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(ll);
 		this.parent = null;
 	}
 
 	public NumberLiteralContent(IntegerLiteralExpr il) {
 		super(il);
-		name = il.toString();
+		this.rawStringRep = il.toString();
 		this.absStringRep = this.getAbsStringRep(il);
-		this.partlyAbsStringRep = this.getStringRep(il);
+		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(il);
 		this.parent = null;
 	}
 
@@ -47,11 +47,7 @@ public class NumberLiteralContent extends ParameterContent {
 		}
 	}*/
 
-	public String getName() {
-		return name;
-	}
-
 	public void print() {
-		System.out.println("NumberLiteralContent [name=" + name + "]");
+		System.out.println("NumberLiteralContent [name=" + this.getRawStringRep() + "]");
 	}
 }

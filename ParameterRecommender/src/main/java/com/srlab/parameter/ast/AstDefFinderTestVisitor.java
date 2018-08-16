@@ -37,32 +37,30 @@ import com.srlab.parameter.binding.TypeDescriptor;
 import com.srlab.parameter.completioner.SourcePosition;
 import com.srlab.parameter.config.Config;
 
-
-public class AstDefFinderTestVisitor extends VoidVisitorAdapter<Void>{
+public class AstDefFinderTestVisitor extends VoidVisitorAdapter<Void> {
 
 	private CompilationUnit cu;
-	
+
 	public AstDefFinderTestVisitor(CompilationUnit _cu, String _path) {
 		// TODO Auto-generated constructor stub
 		this.cu = _cu;
 	}
-	
-	
+
 	public CompilationUnit getCu() {
 		return cu;
 	}
-	
+
 	public MethodDeclaration getMethodDeclarationContainer(Node node) {
 		Optional<Node> parent = node.getParentNode();
-		while(parent.isPresent() && ((parent.get() instanceof MethodDeclaration))==false){
+		while (parent.isPresent() && ((parent.get() instanceof MethodDeclaration)) == false) {
 			parent = parent.get().getParentNode();
 		}
-		if(parent.isPresent() && ((parent.get())instanceof MethodDeclaration)) {
-			return (MethodDeclaration)parent.get();
-		}
-		else return null;
+		if (parent.isPresent() && ((parent.get()) instanceof MethodDeclaration)) {
+			return (MethodDeclaration) parent.get();
+		} else
+			return null;
 	}
-		
+
 	@Override
 	public void visit(MethodCallExpr m, Void arg) {
 		// TODO Auto-generated method stub
@@ -88,14 +86,15 @@ public class AstDefFinderTestVisitor extends VoidVisitorAdapter<Void>{
 				if (resolvedMethodDeclaration.isSolved()) {
 					String methodQualifiedName = resolvedMethodDeclaration.getCorrespondingDeclaration()
 							.getQualifiedName();
-				// if this is a framework method call and the method has parameter we process it
+					// if this is a framework method call and the method has parameter we process it
 					if (Config.isInteresting(methodQualifiedName)) {
-						
-						if(m.getScope().get() instanceof NameExpr) {
+
+						if (m.getScope().get() instanceof NameExpr) {
 							String varname = m.getScope().get().asNameExpr().getName().getIdentifier();
-							Position position =m.getScope().get().asNameExpr().getBegin().get();
-							System.out.println("+++++++++Method Call Expression: "+m+" +++++++++++++++++++");
-							AstDefFinder astDefFinder = new AstDefFinder(varname, position,methodDeclaration, JSSConfigurator.getInstance().getJpf());
+							Position position = m.getScope().get().asNameExpr().getBegin().get();
+							System.out.println("+++++++++Method Call Expression: " + m + " +++++++++++++++++++");
+							AstDefFinderWithoutBinding astDefFinder = new AstDefFinderWithoutBinding(varname, position,
+									methodDeclaration, JSSConfigurator.getInstance().getJpf());
 							astDefFinder.print();
 						}
 					}

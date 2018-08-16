@@ -5,21 +5,16 @@ import com.github.javaparser.ast.expr.BooleanLiteralExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 
 public class BooleanLiteralContent extends ParameterContent {
-	private String name;
 
 	public BooleanLiteralContent(BooleanLiteralExpr nl) {
 		super(nl);
-		name = nl.toString();
+		this.rawStringRep = nl.toString();
 		this.absStringRep = this.getAbsStringRep(nl);
-		this.partlyAbsStringRep = this.getStringRep(nl);
+		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(nl);
 		this.parent = null;
 	}
 
-	public String getName() {
-		return name;
-	}
-
 	public void print() {
-		System.out.print("BOOLEAN LITERAL: " + "Name: " + this.getName() + " Abstract Rep: " + this.getAbsStringRep());
+		System.out.print("BOOLEAN LITERAL: " + "Name: " + this.getRawStringRep() + " Abstract Rep: " + this.getAbsStringRep());
 	}
 }

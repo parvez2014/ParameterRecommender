@@ -21,7 +21,7 @@ public class ClassInstanceCreationContent extends ParameterContent{
 		super(objectCreationExpression);
 		this.typeQualifiedName = null;
 		this.name = objectCreationExpression.toString();
-		this.absStringRep = this.getStringRep(objectCreationExpression);	
+		this.absStringRep = this.getAbsStringRepWithLiteral(objectCreationExpression);	
 		
 		ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpression.getType());
 		TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
@@ -46,7 +46,7 @@ public class ClassInstanceCreationContent extends ParameterContent{
 			this.scopeTypeQualifiedName =null;
 		}
 		this.absStringRep = this.getAbsStringRep(objectCreationExpression);
-		this.partlyAbsStringRep = this.getStringRep(objectCreationExpression);
+		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(objectCreationExpression);
 	}
 	
 	public String getName() {

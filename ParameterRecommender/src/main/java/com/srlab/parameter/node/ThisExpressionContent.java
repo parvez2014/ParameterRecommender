@@ -55,7 +55,7 @@ public class ThisExpressionContent extends ParameterContent{
 			this.absStringRep = "this";		
 		}*/
 		this.absStringRep = this.getAbsStringRep(thisExpr);
-		this.partlyAbsStringRep = this.getStringRep(thisExpr);
+		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(thisExpr);
 	}
 	
 	public String getName() {
