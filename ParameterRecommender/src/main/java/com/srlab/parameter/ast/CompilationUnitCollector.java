@@ -42,9 +42,9 @@ public class CompilationUnitCollector {
 					fileCompilationUnitMap.put(file.getAbsolutePath(),list);
 				}
 				cuList.add(cu);
-			} catch (FileNotFoundException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println("Error in parsing a file");
 			}
 		}
 		else {

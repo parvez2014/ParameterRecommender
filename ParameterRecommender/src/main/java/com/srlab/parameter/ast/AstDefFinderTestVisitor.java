@@ -210,11 +210,12 @@ public class AstDefFinderTestVisitor extends VoidVisitorAdapter<Void> {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		JSSConfigurator.getInstance().init("/home/parvez/research/ParameterCompletion/parameterCompletionWorkspace/ParameterCompletionTest", Config.EXTERNAL_DEPENDENCY_PATH);
+		JSSConfigurator.getInstance().init("/home/parvez/research/ParameterCompletion/repository/jedit-svn", Config.EXTERNAL_DEPENDENCY_PATH);
 		CompilationUnitCollector cuc = new CompilationUnitCollector();
-		List<CompilationUnit> cuList = cuc.collectCompilationUnits(new File("/home/parvez/research/ParameterCompletion/parameterCompletionWorkspace/ParameterCompletionTest"));
-		for(CompilationUnit cu:cuList) {
-			AstDefFinderTestVisitor astDefFinder = new AstDefFinderTestVisitor(cu);
+		List<CompilationUnit> cuList = cuc.collectCompilationUnits(new File("/home/parvez/research/ParameterCompletion/repository/jedit-svn"));
+		for(int i=0;i<cuList.size();i++) {
+			System.out.println("Progress: " + i+" "+cuList.size());
+			AstDefFinderTestVisitor astDefFinder = new AstDefFinderTestVisitor(cuList.get(i));
 		}
 	}
 

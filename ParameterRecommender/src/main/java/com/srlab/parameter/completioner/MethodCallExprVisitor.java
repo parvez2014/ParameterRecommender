@@ -56,6 +56,7 @@ import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.resolution.typeinference.TypeHelper;
 import com.srlab.parameter.ast.AstDefFinderWithoutBinding;
+import com.srlab.parameter.ast.ReceiverOrArgumentMethodCallCollector;
 import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.binding.TypeResolver;
 import com.srlab.parameter.config.Config;
@@ -488,49 +489,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 			return input.substring(idxStart,curIdx);
 		}
 		
-		public String getVariableName(Expression expression){
-			
-			if(expression instanceof NameExpr){
-				return expression.asNameExpr().getName().getIdentifier();
-			}
-			else if(expression instanceof MethodCallExpr){
-				MethodCallExpr methodCallExpr = (MethodCallExpr)expression;
-				if(methodCallExpr.getScope().isPresent()){
-					return this.getVariableName(methodCallExpr.getScope().get());
-				}
-				else return "";
-			}
-			else if(expression instanceof ThisExpr) {
-				return "this";
-			}
-			else if(expression instanceof SuperExpr) {
-				return "super";
-			}
-			else return null;
-		}
-		
-		public HashSet<String> collectReceiverOrArgumentVarnames(MethodCallExpr m) {
-			HashSet<String> identifierSet = new HashSet();
-			
-			if(m.getScope().isPresent()&& m.getScope().get() instanceof NameExpr) {
-				String receiver_varname = m.getScope().get().asNameExpr().getName().getIdentifier();
-				identifierSet.add(receiver_varname);
-				if(m.getArguments().size()>0) {
-					for(Expression expression:m.getArguments()) {
-						//we need to find the receiver variable
-						String argumentExpressionVarName = this.getVariableName(expression);
-						if(argumentExpressionVarName!=null && identifierSet.contains(argumentExpressionVarName)==false) {
-							identifierSet.add(argumentExpressionVarName);
-						}
-					}
-				}
-			}
-			return identifierSet;
-		}
-		
-		
 	
-		
 		@Override
 		public void visit(MethodCallExpr m, Void arg) {
 			// TODO Auto-generated method stub
@@ -634,7 +593,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 									}
 								}
 								
-								HashSet<String> receiverOrArgumentVarnames= this.collectReceiverOrArgumentVarnames(m);
+								HashSet<String> receiverOrArgumentVarnames= ReceiverOrArgumentMethodCallCollector.collect(m);
 								String methodCalledOnReceiverOrArgument = "";
 								if(receiverOrArgumentVarnames.size()>0) {
 									AstDefFinderWithoutBinding astDefFinderWithoutBinding = new AstDefFinderWithoutBinding(receiverOrArgumentVarnames,m.getName().getBegin().get(), methodDeclaration, JSSConfigurator.getInstance().getJpf());
