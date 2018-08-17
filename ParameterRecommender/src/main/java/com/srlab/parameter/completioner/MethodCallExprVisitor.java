@@ -10,6 +10,7 @@ import java.io.StreamTokenizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -18,10 +19,12 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 
+import com.github.javaparser.JavaToken;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.BooleanLiteralExpr;
 import com.github.javaparser.ast.expr.CastExpr;
 import com.github.javaparser.ast.expr.CharLiteralExpr;
@@ -34,8 +37,17 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.NullLiteralExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
+import com.github.javaparser.ast.expr.SuperExpr;
 import com.github.javaparser.ast.expr.ThisExpr;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.stmt.CatchClause;
+import com.github.javaparser.ast.stmt.ForStmt;
+import com.github.javaparser.ast.stmt.ForeachStmt;
+import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.TryStmt;
+import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
@@ -43,6 +55,7 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.resolution.typeinference.TypeHelper;
+import com.srlab.parameter.ast.AstDefFinderWithoutBinding;
 import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.binding.TypeResolver;
 import com.srlab.parameter.config.Config;
@@ -59,6 +72,8 @@ import com.srlab.parameter.node.QualifiedNameContent;
 import com.srlab.parameter.node.StringLiteralContent;
 import com.srlab.parameter.node.ThisExpressionContent;
 import com.srlab.parameter.node.UnknownContent;
+
+import javassist.bytecode.stackmap.BasicBlock.Catch;
 
 
 public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
@@ -473,32 +488,48 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 			return input.substring(idxStart,curIdx);
 		}
 		
-		public String collectAstContext(MethodCallExpr methodCallExpr) {
-			StringBuffer astContextBuffer = new StringBuffer("");
-			Node  parent = methodCallExpr;
-			while(parent!=null) {
-				if(parent instanceof MethodCallExpr) {
-					astContextBuffer.append(methodCallExpr.getName().getIdentifier());
-					astContextBuffer.append(" ");
-				}
-				else if(parent instanceof MethodDeclaration) {
-					
-					MethodDeclaration methodDeclaration = (MethodDeclaration)parent;
-					astContextBuffer.append(methodDeclaration.getName().getIdentifier());
-					astContextBuffer.append(" ");		
-				}
-				else if(parent instanceof MethodDeclaration) {
-					
-					MethodDeclaration methodDeclaration = (MethodDeclaration)parent;
-					astContextBuffer.append(methodDeclaration.getName().getIdentifier());
-					astContextBuffer.append(" ");		
-				}
-				if(parent.getParentNode().isPresent()) parent = parent.getParentNode().get();
-				else parent = null;
-			}
+		public String getVariableName(Expression expression){
 			
-			return astContextBuffer;
+			if(expression instanceof NameExpr){
+				return expression.asNameExpr().getName().getIdentifier();
+			}
+			else if(expression instanceof MethodCallExpr){
+				MethodCallExpr methodCallExpr = (MethodCallExpr)expression;
+				if(methodCallExpr.getScope().isPresent()){
+					return this.getVariableName(methodCallExpr.getScope().get());
+				}
+				else return "";
+			}
+			else if(expression instanceof ThisExpr) {
+				return "this";
+			}
+			else if(expression instanceof SuperExpr) {
+				return "super";
+			}
+			else return null;
 		}
+		
+		public HashSet<String> collectReceiverOrArgumentVarnames(MethodCallExpr m) {
+			HashSet<String> identifierSet = new HashSet();
+			
+			if(m.getScope().isPresent()&& m.getScope().get() instanceof NameExpr) {
+				String receiver_varname = m.getScope().get().asNameExpr().getName().getIdentifier();
+				identifierSet.add(receiver_varname);
+				if(m.getArguments().size()>0) {
+					for(Expression expression:m.getArguments()) {
+						//we need to find the receiver variable
+						String argumentExpressionVarName = this.getVariableName(expression);
+						if(argumentExpressionVarName!=null && identifierSet.contains(argumentExpressionVarName)==false) {
+							identifierSet.add(argumentExpressionVarName);
+						}
+					}
+				}
+			}
+			return identifierSet;
+		}
+		
+		
+	
 		
 		@Override
 		public void visit(MethodCallExpr m, Void arg) {
@@ -603,7 +634,13 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 									}
 								}
 								
-								ModelEntry modelEntry = new ModelEntry(methodCallEntity, parameterContentList, neighborList, lineContent);
+								HashSet<String> receiverOrArgumentVarnames= this.collectReceiverOrArgumentVarnames(m);
+								String methodCalledOnReceiverOrArgument = "";
+								if(receiverOrArgumentVarnames.size()>0) {
+									AstDefFinderWithoutBinding astDefFinderWithoutBinding = new AstDefFinderWithoutBinding(receiverOrArgumentVarnames,m.getName().getBegin().get(), methodDeclaration, JSSConfigurator.getInstance().getJpf());
+								}
+								
+								ModelEntry modelEntry = new ModelEntry(methodCallEntity, parameterContentList, neighborList, lineContent,"",methodCalledOnReceiverOrArgument,new SourcePosition(m.getName().getBegin().get()),this.filePath);
 								this.modelEntryList.add(modelEntry);
 								if(parameterContentList.size()>0) {
 									for(int i=0;i<parameterContentList.size();i++) {

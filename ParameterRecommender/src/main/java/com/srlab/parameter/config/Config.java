@@ -16,10 +16,11 @@ public class Config {
 	public static final String FRAMEWORKS[] = {"javax.swing.","java.awt."};
 	
 	public static boolean isInteresting(String qualifiedTypeName) {
-		for(String prefix:FRAMEWORKS) {
+		/*for(String prefix:FRAMEWORKS) {
 			if(qualifiedTypeName.startsWith(prefix)) return true;
 		}
-		return false;
+		return false;*/
+		return true;
 	}
 	public static String getRepositoryFolderName() {
 		File file = new File(Config.REPOSITORY_PATH);

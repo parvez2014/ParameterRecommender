@@ -10,34 +10,29 @@ public class ModelEntry {
 	private List<ParameterContent> parameterContentList;
 	private String neighborList;
 	private String lineContent;
-	private String receiverMethodCalls;
 	private String astContext;
-	private List<String> argumentMethodCallsList;
+	private String receiverOrArgumentMethodCalls;
 
 	private SourcePosition sourcePosition;
 	private String path;
 
 	public ModelEntry(MethodCallEntity _methodCallEntity, List<ParameterContent> _parameterContentList,
-			String _neighborList, String _lineContent, String astContxt, String _receiverMethodCalls,
-			List<String> _argumentMethodCallsList, SourcePosition _sourcePosition, String _path) {
+			String _neighborList, String _lineContent, String astContxt, String _receiverOrArgumentMethodCalls, SourcePosition _sourcePosition, String _path) {
 		super();
 		this.methodCallEntity = _methodCallEntity;
 		this.parameterContentList = _parameterContentList;
 		this.neighborList = _neighborList;
 		this.lineContent = _lineContent;
-		this.receiverMethodCalls = _receiverMethodCalls;
-		this.argumentMethodCallsList = _argumentMethodCallsList;
-		this.sourcePosition = _sourcePosition;
+		this.receiverOrArgumentMethodCalls = _receiverOrArgumentMethodCalls;
+			this.sourcePosition = _sourcePosition;
 		this.path = _path;
 	}
 
-	public String getReceiverMethodCalls() {
-		return receiverMethodCalls;
+
+	public String getReceiverOrArgumentMethodCalls() {
+		return receiverOrArgumentMethodCalls;
 	}
 
-	public List<String> getArgumentMethodCallsList() {
-		return argumentMethodCallsList;
-	}
 
 	public SourcePosition getSourcePosition() {
 		return sourcePosition;
@@ -75,15 +70,20 @@ public class ModelEntry {
 		return lineContent;
 	}
 
+	
+	@Override
+	public String toString() {
+		return "ModelEntry [methodCallEntity=" + methodCallEntity + ", parameterContentList=" + parameterContentList
+				+ ", neighborList=" + neighborList + ", lineContent=" + lineContent + ", astContext=" + astContext
+				+ ", receiverOrArgumentMethodCalls=" + receiverOrArgumentMethodCalls + ", sourcePosition="
+				+ sourcePosition + ", path=" + path + "]";
+	}
+
 	public void setLineContent(String lineContent) {
 		this.lineContent = lineContent;
 	}
 
-	@Override
-	public String toString() {
-		return "ParameterModelEntry [methodCallEntity=" + methodCallEntity + ", parameterContentList="
-				+ parameterContentList + ", neighborList=" + neighborList + ", lineContent=" + lineContent + "]";
-	}
+
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
