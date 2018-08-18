@@ -18,7 +18,7 @@ public class ModelEntry implements Serializable{
 	private String path;
 
 	public ModelEntry(MethodCallEntity _methodCallEntity, List<ParameterContent> _parameterContentList,
-			String _neighborList, String _lineContent, String astContxt, String _receiverOrArgumentMethodCalls, String _slpContext, SourcePosition _sourcePosition, String _path) {
+			String _neighborList, String _lineContent, String _astContext, String _receiverOrArgumentMethodCalls, String _slpContext, SourcePosition _sourcePosition, String _path) {
 		super();
 		this.methodCallEntity = _methodCallEntity;
 		this.parameterContentList = _parameterContentList;
@@ -26,7 +26,8 @@ public class ModelEntry implements Serializable{
 		this.lineContent = _lineContent;
 		this.receiverOrArgumentMethodCalls = _receiverOrArgumentMethodCalls;
 		this.slpContext = _slpContext;
-			this.sourcePosition = _sourcePosition;
+		this.astContext = _astContext;
+		this.sourcePosition = _sourcePosition;
 		this.path = _path;
 	}
 

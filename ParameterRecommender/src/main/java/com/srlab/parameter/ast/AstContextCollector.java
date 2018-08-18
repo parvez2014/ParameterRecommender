@@ -157,8 +157,17 @@ public class AstContextCollector {
 				parent = null;
 			}
 		}
-		Collections.reverse(astContextList);
-		return astContextList;
+		//if the same item appear multiple times, we preserve just one
+		List<String> filteredAstContextList = new ArrayList();
+		for(int i=0;i<astContextList.size();i++) {
+			if(i>0 && astContextList.get(i).equals(astContextList.get(i-1))) {
+				//do nothing
+			}
+			else filteredAstContextList.add(astContextList.get(i));		
+		}
+		
+		Collections.reverse(filteredAstContextList);
+		return filteredAstContextList;
 	}
 
 }
