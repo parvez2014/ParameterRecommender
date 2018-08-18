@@ -45,18 +45,18 @@ public class JSSConfigurator {
 		
 		//Step-1: Create a combined type solver
 		this.combinedTypeSolver = new CombinedTypeSolver();		
-
+		ParserConfiguration parserConfiguration = new ParserConfiguration();
+		parserConfiguration.setStoreTokens(false);
+		parserConfiguration.setAttributeComments(false);
+	
 		Path path = Paths.get(rootPath);
 		ProjectRoot projectRoot = 
-			    new CollectionContext(new SymbolSolverCollectionStrategy())
+			    new CollectionContext(new SymbolSolverCollectionStrategy(parserConfiguration))
 			    .collect(path);
 		System.out.println("Source Roots: "+projectRoot.getSourceRoots().size());	
 		
 		//step-2: add java parser type solver
-		ParserConfiguration parserConfiguration = new ParserConfiguration();
-		parserConfiguration.setStoreTokens(false);
-		parserConfiguration.setAttributeComments(false);
-		for(int i=0;i<projectRoot.getSourceRoots().size();i++) {
+			for(int i=0;i<projectRoot.getSourceRoots().size();i++) {
 			SourceRoot sourceroot = projectRoot.getSourceRoots().get(i);
 			sourceroot.setParserConfiguration(parserConfiguration);
 			System.out.println("["+i+"] "+sourceroot.getRoot());	

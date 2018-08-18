@@ -169,5 +169,23 @@ public class AstContextCollector {
 		Collections.reverse(filteredAstContextList);
 		return filteredAstContextList;
 	}
+	
+	public static void main(String args[]) {
+		List<String> list = new ArrayList();
+		list.add("iterator");
+		list.add("iterator");
+		list.add("iterator1");
+		list.add("iterator1");
+		list.add("iterator2");
+			
+		List<String> filteredAstContextList = new ArrayList();
+		for(int i=0;i<list.size();i++) {
+			if(i>0 && list.get(i).equals(list.get(i-1))) {
+				//do nothing
+			}
+			else filteredAstContextList.add(list.get(i));		
+		}
+		System.out.println("List: "+filteredAstContextList);
+	}
 
 }
