@@ -17,6 +17,7 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
+import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.config.Config;
 import com.srlab.parameter.node.ParameterContent;
 
@@ -27,6 +28,8 @@ public class ModelEntryCollectionDriver {
 	private HashMap<String,List<ModelEntry>> hmFileToModelEntries;
 	private HashMap<String,List<ParameterModelEntry>> hmFileToParameterModelEntries;
 	
+	//list of SLP context
+	private static List<List<String>> slp_context;
 	
 	public List<String> collectSourceFiles(File file){
 		List<String> fileList = new LinkedList();
@@ -40,10 +43,13 @@ public class ModelEntryCollectionDriver {
 		return fileList;
 	}
 	
-	public void run() {
+	public void run() throws IOException {
 		List<String> fileList = this.collectSourceFiles(new File(this.repositoryPath));
 		System.out.println("Total Collected Files: "+fileList.size());
 		int counter = 0;
+		BufferedWriter bw = new BufferedWriter(new FileWriter(Config.MODEL_ENTRY_OUTPUT_PATH));
+		List<List<String>> slp_context = new ArrayList();
+
 		for(String file:fileList) {
 			//first convert the file to compilation unit
 			System.out.println("Progress: "+ (counter++)+"/"+fileList.size());
@@ -61,10 +67,46 @@ public class ModelEntryCollectionDriver {
 							MethodCallExprVisitor methodCallExprVisitor = new MethodCallExprVisitor(cu,file);
 							md.accept(methodCallExprVisitor,null);
 							this.modelEntryList.addAll(methodCallExprVisitor.getModelEntryList());
-							
 							fileModelEntryList.addAll(methodCallExprVisitor.getModelEntryList());
 							fileParameterModelEntryList.addAll(methodCallExprVisitor.getParameterModelEntryList());
-							
+							System.out.println("I am here"+methodCallExprVisitor.getModelEntryList().size());
+							//write the information
+							for(ModelEntry modelEntry:methodCallExprVisitor.getModelEntryList()) {
+								StringBuffer sbParameterAbsStringRep = new StringBuffer("");
+								StringBuffer sbParameterAbsStringRepWithLiteral = new StringBuffer("");
+								
+								for(ParameterContent parameterContent: modelEntry.getParameterContentList()) {
+									sbParameterAbsStringRep.append(parameterContent.getAbsStringRep());
+									sbParameterAbsStringRep.append(" ");
+									sbParameterAbsStringRepWithLiteral.append(parameterContent.getAbsStringRepWithLiteral());
+									sbParameterAbsStringRepWithLiteral.append(" ");
+								}
+								
+								bw.write("MethodName: "+modelEntry.getMethodCallEntity().getMethodDeclarationEntity().getName());
+								bw.newLine();
+								bw.write("ReceiverType: "+modelEntry.getMethodCallEntity().getReceiverQualifiedName());
+								bw.newLine();
+								bw.write("SourcePosition: "+modelEntry.getSourcePosition().column+" : " + modelEntry.getSourcePosition().line);
+								bw.newLine();
+								bw.write("Path: "+modelEntry.getPath());
+								bw.newLine();
+								
+								bw.write("AbsStringRep: "+sbParameterAbsStringRep);
+								bw.newLine();
+								bw.write("AbsStringRepWithLiteral: "+sbParameterAbsStringRepWithLiteral);
+								bw.newLine();
+								bw.write("Neighborlist: "+modelEntry.getNeighborList());
+								bw.newLine();
+								bw.write("LineContext: "+modelEntry.getLineContent());
+								bw.newLine();
+								bw.write("AstContext: "+modelEntry.getAstContext());
+								bw.newLine();
+								bw.write("SlpContext: "+modelEntry.getSlpContext());
+								bw.newLine();
+								bw.write("MethodCalledOnReceiverOrArguments: "+modelEntry.getReceiverOrArgumentMethodCalls());
+								bw.newLine();
+								System.out.println("Writinh....");
+							}
 						}
 					}	
 				}
@@ -74,6 +116,7 @@ public class ModelEntryCollectionDriver {
 			this.hmFileToModelEntries.put(file,fileModelEntryList);
 			this.hmFileToParameterModelEntries.put(file,fileParameterModelEntryList);
 		}
+		bw.close();
 	}
 	
 	public String getRepositoryPath() {
@@ -100,35 +143,13 @@ public class ModelEntryCollectionDriver {
 	}
 
 	public static void main(String args[]) {
+		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH);
 		ModelEntryCollectionDriver modelEntryCollectionDriver = new ModelEntryCollectionDriver(Config.REPOSITORY_PATH);
-		modelEntryCollectionDriver.run();
-		System.out.println("Total Collected Model Entry List: "+modelEntryCollectionDriver.getModelEntryList().size());
-		List<ModelEntry> modelEntryList = modelEntryCollectionDriver.getModelEntryList();
 		try {
-			BufferedWriter bw = new BufferedWriter(new FileWriter(Config.MODEL_ENTRY_OUTPUT_PATH));
-			for(ModelEntry modelEntry:modelEntryList) {
-				StringBuffer sbParameter = new StringBuffer("");
-				for(ParameterContent parameterContent: modelEntry.getParameterContentList()) {
-					sbParameter.append(parameterContent.getAbsStringRep());
-					sbParameter.append(" ");
-				}
-				
-				bw.write("MethodName:ReceiverType> "+modelEntry.getMethodCallEntity().getMethodDeclarationEntity().getName()+":"+modelEntry.getMethodCallEntity().getReceiverQualifiedName());
-				bw.newLine();
-				bw.write("ReceiverType> "+modelEntry.getMethodCallEntity().getReceiverQualifiedName());
-				bw.newLine();
-				bw.write("ParameterList> "+sbParameter.toString());
-				bw.newLine();
-				bw.write("SorroundingContext> "+modelEntry.getNeighborList());
-				bw.newLine();
-				bw.write("LineContext> "+modelEntry.getLineContent());
-				bw.newLine();
-			}
-			bw.close();
+			modelEntryCollectionDriver.run();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 	}
 }

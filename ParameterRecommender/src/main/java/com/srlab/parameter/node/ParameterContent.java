@@ -65,6 +65,10 @@ public class ParameterContent implements Serializable{
 		
 	}
 	
+	public String getAbsStringRepWithLiteral() {
+		return absStringRepWithLiteral;
+	}
+
 	public String getRawStringRep() {
 		return rawStringRep;
 	}

@@ -55,6 +55,8 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.resolution.typeinference.TypeHelper;
+import com.google.common.collect.Lists;
+import com.srlab.parameter.ast.AstContextCollector;
 import com.srlab.parameter.ast.AstDefFinderWithoutBinding;
 import com.srlab.parameter.ast.ReceiverOrArgumentMethodCallCollector;
 import com.srlab.parameter.binding.JSSConfigurator;
@@ -526,6 +528,26 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 								
 								List<Token> tokenList = this.tokenize(text);
 								
+								//collect slp context
+								List<String> eachSlpContext = new ArrayList<String>();
+								if(tokenList.size() >= 10)
+								{
+									for (int z = tokenList.size()-1;z >=tokenList.size()-9;z--)
+									{
+										eachSlpContext.add(tokenList.get(z).getToken());
+									}
+								}
+								else
+								{
+									for (Token s: tokenList)
+											eachSlpContext.add(s.getToken());
+								}
+								List<String> finalContext = Lists.reverse(eachSlpContext);
+								finalContext.add(".");
+								finalContext.add(m.getName().getIdentifier());
+								finalContext.add("(");
+
+								
 								String neighborList   = this.calcNeighbor(tokenList,tokenList.size()-1);
 								String lineContent    = this.getLineContent(tokenList, tokenList.size()-1);
 								
@@ -535,6 +557,8 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 								if(m.getArguments().size()>0) {
 									for(int i=0;i<m.getArguments().size();i++) {
 										Expression expression = m.getArguments().get(i);
+										finalContext.add(expression.toString());
+										
 										if (expression instanceof StringLiteralExpr) {
 											ParameterContent parameterContent = new StringLiteralContent((StringLiteralExpr)expression);
 											parameterContentList.add(parameterContent);
@@ -592,14 +616,33 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 										}
 									}
 								}
+								finalContext.add(")");
 								
 								HashSet<String> receiverOrArgumentVarnames= ReceiverOrArgumentMethodCallCollector.collect(m);
 								String methodCalledOnReceiverOrArgument = "";
 								if(receiverOrArgumentVarnames.size()>0) {
 									AstDefFinderWithoutBinding astDefFinderWithoutBinding = new AstDefFinderWithoutBinding(receiverOrArgumentVarnames,m.getName().getBegin().get(), methodDeclaration, JSSConfigurator.getInstance().getJpf());
+									StringBuilder sbReceiverArgumentMethodCalls = new StringBuilder();
+									for(String methodCall:astDefFinderWithoutBinding.getMethodCalls()) {
+										sbReceiverArgumentMethodCalls.append(methodCall);
+										sbReceiverArgumentMethodCalls.append(" ");
+									}
+									methodCalledOnReceiverOrArgument = sbReceiverArgumentMethodCalls.toString();
+								}
+								AstContextCollector astContextCollector = new AstContextCollector();
+								List<String> astContextList = astContextCollector.collectAstContext(m,m.getName().getBegin().get());
+								StringBuilder sbAstContext = new StringBuilder("");
+								for(String str: astContextList) {
+									sbAstContext.append(str);
+									sbAstContext.append(" ");
+								}
+								StringBuilder sbSlpContext = new StringBuilder();
+								for(String str: finalContext) {
+									sbSlpContext.append(str);
+									sbSlpContext.append(" ");
 								}
 								
-								ModelEntry modelEntry = new ModelEntry(methodCallEntity, parameterContentList, neighborList, lineContent,"",methodCalledOnReceiverOrArgument,new SourcePosition(m.getName().getBegin().get()),this.filePath);
+								ModelEntry modelEntry = new ModelEntry(methodCallEntity, parameterContentList, neighborList, lineContent,sbAstContext.toString(),methodCalledOnReceiverOrArgument,sbSlpContext.toString().trim(),new SourcePosition(m.getName().getBegin().get()),this.filePath);
 								this.modelEntryList.add(modelEntry);
 								if(parameterContentList.size()>0) {
 									for(int i=0;i<parameterContentList.size();i++) {
@@ -613,7 +656,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 					}
 				}catch(Exception e) {
 					//e.printStackTrace();
-					//System.out.println("Fail to resolve type");
+					System.out.println("Fail to resolve type");
 				}
 			}
 		}
