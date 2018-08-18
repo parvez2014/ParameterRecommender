@@ -17,6 +17,7 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
+import com.srlab.parameter.ast.CompilationUnitCollector;
 import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.config.Config;
 import com.srlab.parameter.node.ParameterContent;
@@ -111,11 +112,29 @@ public class ModelEntryCollectionDriver {
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+			}catch(java.lang.StackOverflowError e) {
+				System.out.println("Stack OverflowError");
 			}
 			this.hmFileToModelEntries.put(file,fileModelEntryList);
 			this.hmFileToParameterModelEntries.put(file,fileParameterModelEntryList);
 		}
 		bw.close();
+	}
+	
+	public void newRun() {
+		File root = new File("/media/parvez/IntelSSD/research/parameter_recommendation/repository/main");
+		List<String> filePathList = this.collectSourceFiles(root);
+		System.out.println("FilePath: "+filePathList.size());
+		File listOfFiles[] = root.listFiles();
+		int totalCompilationUnit =0;
+		for(File child:listOfFiles) {
+			CompilationUnitCollector cuc = new CompilationUnitCollector();
+			List<CompilationUnit> cuList = cuc.collectCompilationUnits(child);
+			totalCompilationUnit = totalCompilationUnit +cuList.size();
+			if(cuList.size()>500)
+			System.out.println("File: "+child.getName()+" : "+cuList.size());
+		}
+		System.out.println("Total CompilationUnit: "+totalCompilationUnit);
 	}
 	
 	public String getRepositoryPath() {
@@ -144,11 +163,6 @@ public class ModelEntryCollectionDriver {
 	public static void main(String args[]) {
 		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH);
 		ModelEntryCollectionDriver modelEntryCollectionDriver = new ModelEntryCollectionDriver(Config.REPOSITORY_PATH);
-		try {
-			modelEntryCollectionDriver.run();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		modelEntryCollectionDriver.newRun();
 	}
 }
