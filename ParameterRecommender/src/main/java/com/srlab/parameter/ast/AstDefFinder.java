@@ -389,7 +389,7 @@ public class AstDefFinder extends VoidVisitorAdapter<Void> {
 		// TODO Auto-generated method stub
 		super.visit(n, arg);
 		if (this.matchesVarName(n.getName())) {
-			System.out.println("Its a parameter: for " + varname);
+			//System.out.println("Its a parameter: for " + varname);
 			this.definitionType = DefinitionType.PARAMETER;
 		}
 	}

@@ -31,8 +31,8 @@ public class TypeResolver {
 	public static String resolve(Expression expression) {
 		
 		if(expression instanceof ArrayAccessExpr) {
-			System.out.println("Type of Array Access Expr: "+JSSConfigurator.getInstance().getJpf().getType(expression.asArrayAccessExpr()));
-			System.out.println("ArrayAccessExpr: "+expression+"  Name: "+expression.asArrayAccessExpr().getName()+"  Index:"+expression.asArrayAccessExpr().getIndex());
+			//System.out.println("Type of Array Access Expr: "+JSSConfigurator.getInstance().getJpf().getType(expression.asArrayAccessExpr()));
+			//System.out.println("ArrayAccessExpr: "+expression+"  Name: "+expression.asArrayAccessExpr().getName()+"  Index:"+expression.asArrayAccessExpr().getIndex());
 			return TypeResolver.resolve(((ArrayAccessExpr) expression).getName());
 		}
 		else if(expression instanceof ArrayCreationExpr) {
@@ -68,7 +68,7 @@ public class TypeResolver {
 			return typeDescriptor.getTypeQualifiedName();
 		}
 		else if(expression instanceof NameExpr) {
-			System.out.println("Calling Name Expr: "+expression.asNameExpr());
+			//System.out.println("Calling Name Expr: "+expression.asNameExpr());
 			//System.out.println("Resolved Type: "+JSSConfigurator.getInstance().getJpf().getType(expression.asNameExpr()));
 			NameExpr nameExpr = expression.asNameExpr();
 			Optional<Node> parent = nameExpr.getParentNode();

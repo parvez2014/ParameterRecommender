@@ -487,7 +487,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 				
 				curIdx++;
 			}
-			System.out.println("Start = "+idxStart+" End: "+curIdx);
+			//System.out.println("Start = "+idxStart+" End: "+curIdx);
 			return input.substring(idxStart,curIdx);
 		}
 		
@@ -510,7 +510,9 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 							
 							MethodDeclaration methodDeclaration = this.getMethodDeclarationContainer(m);	
 							if(methodDeclaration!=null && methodDeclaration.getBegin().isPresent() && m.getBegin().isPresent()) {
-								System.out.println("Method Call Expr: "+m+" File: "+this.getFilePath()+" Line: "+m.getBegin().get().line);
+								//System.out.println("Method Call Expr: "+m+ "Arguments: "+m.getArguments().size());
+								
+								//System.out.println("Method Call Expr: "+m+" File: "+this.getFilePath()+" Line: "+m.getBegin().get().line);
 								/*System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++=");
 								System.out.println("Expression expression: "+m);
 								System.out.println("Method Name: "+m.getName().getIdentifier() +" Scope: "+m.getScope().get());
@@ -610,7 +612,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 											ParameterContent parameterContent = new ThisExpressionContent((ThisExpr)expression);
 											parameterContentList.add(parameterContent);
 										}else {
-											System.out.println("Unknown Expression Type: "+expression);
+											//System.out.println("Unknown Expression Type: "+expression);
 											ParameterContent parameterContent = new UnknownContent(expression);
 											parameterContentList.add(parameterContent);
 										}
@@ -656,7 +658,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 					}
 				}catch(Exception e) {
 					//e.printStackTrace();
-					System.out.println("Fail to resolve type");
+					//System.out.println("Fail to resolve type");
 				}
 			}
 		}

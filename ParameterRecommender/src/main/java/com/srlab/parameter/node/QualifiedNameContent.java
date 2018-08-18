@@ -29,7 +29,7 @@ public class QualifiedNameContent extends ParameterContent {
 		this.name = fieldAccessExpr.toString();
 		this.scope = null;
 		this.scopeTypeQualifiedName = null;
-		System.out.println("FieldAccessScope: "+fieldAccessExpr.getScope()+" "+(fieldAccessExpr.getScope() instanceof ClassExpr));
+		//System.out.println("FieldAccessScope: "+fieldAccessExpr.getScope()+" "+(fieldAccessExpr.getScope() instanceof ClassExpr));
 		
 		this.identifier = fieldAccessExpr.getName().getIdentifier();
 		SymbolReference<? extends ResolvedValueDeclaration> srResolvedValueDeclaration = JSSConfigurator.getInstance().getJpf().solve(fieldAccessExpr.getName());
@@ -39,7 +39,7 @@ public class QualifiedNameContent extends ParameterContent {
 		this.typeQualifiedName = typeDescriptor.getTypeQualifiedName();
 		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(fieldAccessExpr);
 		this.absStringRep = this.getAbsStringRep(fieldAccessExpr);
-		System.out.println("Abstract String Rep in QualifiedNameContent: "+fieldAccessExpr.getScope());
+		//System.out.println("Abstract String Rep in QualifiedNameContent: "+fieldAccessExpr.getScope());
 		
 		JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
 		srResolvedValueDeclaration = jpf.solve(fieldAccessExpr.getScope().asNameExpr());
@@ -54,9 +54,9 @@ public class QualifiedNameContent extends ParameterContent {
 			this.parent = ParameterContent.get(fieldAccessExpr.getScope());
 		}else {
 			this.scopeTypeQualifiedName = fieldAccessExpr.getScope().toString();
-			System.out.println("FieldAccessScope: ::::"+"TypeExpr: "+(fieldAccessExpr.getScope() instanceof TypeExpr));
-			System.out.println("FieldAccessScope: ::::"+"NameExpr: "+(fieldAccessExpr.getScope() instanceof NameExpr));
-			System.out.println("FieldAccessScope: ::::"+"ClassExpr: "+(fieldAccessExpr.getScope() instanceof ClassExpr));
+			//System.out.println("FieldAccessScope: ::::"+"TypeExpr: "+(fieldAccessExpr.getScope() instanceof TypeExpr));
+			//System.out.println("FieldAccessScope: ::::"+"NameExpr: "+(fieldAccessExpr.getScope() instanceof NameExpr));
+			//System.out.println("FieldAccessScope: ::::"+"ClassExpr: "+(fieldAccessExpr.getScope() instanceof ClassExpr));
 			NameExpr nameExpr = fieldAccessExpr.getScope().asNameExpr();
 		}
 	}

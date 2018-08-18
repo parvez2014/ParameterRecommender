@@ -69,7 +69,7 @@ public class ModelEntryCollectionDriver {
 							this.modelEntryList.addAll(methodCallExprVisitor.getModelEntryList());
 							fileModelEntryList.addAll(methodCallExprVisitor.getModelEntryList());
 							fileParameterModelEntryList.addAll(methodCallExprVisitor.getParameterModelEntryList());
-							System.out.println("I am here"+methodCallExprVisitor.getModelEntryList().size());
+							//System.out.println("I am here"+methodCallExprVisitor.getModelEntryList().size());
 							//write the information
 							for(ModelEntry modelEntry:methodCallExprVisitor.getModelEntryList()) {
 								StringBuffer sbParameterAbsStringRep = new StringBuffer("");
@@ -105,7 +105,6 @@ public class ModelEntryCollectionDriver {
 								bw.newLine();
 								bw.write("MethodCalledOnReceiverOrArguments: "+modelEntry.getReceiverOrArgumentMethodCalls());
 								bw.newLine();
-								System.out.println("Writinh....");
 							}
 						}
 					}	

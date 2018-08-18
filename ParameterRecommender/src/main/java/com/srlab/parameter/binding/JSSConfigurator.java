@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
@@ -52,8 +53,12 @@ public class JSSConfigurator {
 		System.out.println("Source Roots: "+projectRoot.getSourceRoots().size());	
 		
 		//step-2: add java parser type solver
+		ParserConfiguration parserConfiguration = new ParserConfiguration();
+		parserConfiguration.setStoreTokens(false);
+		parserConfiguration.setAttributeComments(false);
 		for(int i=0;i<projectRoot.getSourceRoots().size();i++) {
 			SourceRoot sourceroot = projectRoot.getSourceRoots().get(i);
+			sourceroot.setParserConfiguration(parserConfiguration);
 			System.out.println("["+i+"] "+sourceroot.getRoot());	
 			combinedTypeSolver.add(new JavaParserTypeSolver(sourceroot.getRoot())); 
 		}	

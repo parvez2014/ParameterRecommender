@@ -91,8 +91,8 @@ public class MethodDeclarationEntity implements Serializable {
 				parameterList.add(parameterEntity);
 			}
 		}
-		System.out.println("Method: "+resolvedMethodDeclaration.getSignature());
-		System.out.println("Class: "+resolvedMethodDeclaration.getClassName()+" "+resolvedMethodDeclaration.getPackageName());
+		//System.out.println("Method: "+resolvedMethodDeclaration.getSignature());
+		//System.out.println("Class: "+resolvedMethodDeclaration.getClassName()+" "+resolvedMethodDeclaration.getPackageName());
 		
 		Optional<TypeDescriptor> returnTypeDescriptor = Optional.empty();
 		if(resolvedMethodDeclaration.getReturnType()!=null) {
@@ -137,8 +137,8 @@ public class MethodDeclarationEntity implements Serializable {
 			}
 			
 		}
-		System.out.println("Method: "+resolvedConstructorDeclaration.getSignature());
-		System.out.println("Class: "+resolvedConstructorDeclaration.getClassName()+" "+resolvedConstructorDeclaration.getPackageName());
+		//System.out.println("Method: "+resolvedConstructorDeclaration.getSignature());
+		//System.out.println("Class: "+resolvedConstructorDeclaration.getClassName()+" "+resolvedConstructorDeclaration.getPackageName());
 		
 		//constructor declaration does not have a return type
 		Optional<TypeDescriptor> returnTypeDescriptor = Optional.empty();

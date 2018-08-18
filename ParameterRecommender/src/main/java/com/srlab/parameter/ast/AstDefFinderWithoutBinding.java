@@ -291,7 +291,7 @@ public class AstDefFinderWithoutBinding extends VoidVisitorAdapter<Void> {
 		// TODO Auto-generated method stub
 		super.visit(n, arg);
 		if (this.matchesVarName(n.getName())) {
-			System.out.println("Its a parameter: for " + varnameSet);
+			//System.out.println("Its a parameter: for " + varnameSet);
 			this.definitionType = DefinitionType.PARAMETER;
 		}
 	}
