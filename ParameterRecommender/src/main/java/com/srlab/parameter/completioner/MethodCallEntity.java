@@ -30,7 +30,7 @@ public class MethodCallEntity implements Serializable{
 		this.receiverQualifiedName = (_receiver.isPresent()?_receiver.get():null);
 		this.isSuper = _isSuper;
 		this.isThis = _isThis;
-		this.position = (_position.isPresent()?new SourcePosition(_position.get()):null);
+		this.position = (_position.isPresent()?new SourcePosition(_position.get().line, _position.get().column):null);
 		this.methodDeclarationEntity = _methodDeclarationEntity;
 	}
 

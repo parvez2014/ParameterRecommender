@@ -14,21 +14,37 @@ public class ModelEntry implements Serializable{
 	private String astContext;
 	private String slpContext;
 	private String receiverOrArgumentMethodCalls;
-	private SourcePosition sourcePosition;
+	private String nameBasedReceiverMethodCalls;
+	private String nameBasedArgumentMethodCalls;
+	private int line;
+	private int column;
 	private String path;
 
 	public ModelEntry(MethodCallEntity _methodCallEntity, List<ParameterContent> _parameterContentList,
-			String _neighborList, String _lineContent, String _astContext, String _receiverOrArgumentMethodCalls, String _slpContext, SourcePosition _sourcePosition, String _path) {
+			String _neighborList, String _lineContent, String _astContext, String _receiverOrArgumentMethodCalls, String _nameBasedReceiverMethodCalls, String _nameBasedArgumentMethodCalls, String _slpContext, int _column,int _line, String _path) {
 		super();
 		this.methodCallEntity = _methodCallEntity;
 		this.parameterContentList = _parameterContentList;
 		this.neighborList = _neighborList;
 		this.lineContent = _lineContent;
 		this.receiverOrArgumentMethodCalls = _receiverOrArgumentMethodCalls;
+		this.nameBasedReceiverMethodCalls = _nameBasedReceiverMethodCalls;
+		this.nameBasedArgumentMethodCalls = _nameBasedArgumentMethodCalls;
 		this.slpContext = _slpContext;
 		this.astContext = _astContext;
-		this.sourcePosition = _sourcePosition;
+		this.line = _line;
+		this.column = _column;
 		this.path = _path;
+	}
+
+
+	public String getNameBasedReceiverMethodCalls() {
+		return nameBasedReceiverMethodCalls;
+	}
+
+
+	public String getNameBasedArgumentMethodCalls() {
+		return nameBasedArgumentMethodCalls;
 	}
 
 
@@ -47,9 +63,16 @@ public class ModelEntry implements Serializable{
 	}
 
 
-	public SourcePosition getSourcePosition() {
-		return sourcePosition;
+
+	public int getLine() {
+		return line;
 	}
+
+
+	public int getColumn() {
+		return column;
+	}
+
 
 	public String getPath() {
 		return path;
@@ -83,14 +106,16 @@ public class ModelEntry implements Serializable{
 		return lineContent;
 	}
 
-	
+
 	@Override
 	public String toString() {
 		return "ModelEntry [methodCallEntity=" + methodCallEntity + ", parameterContentList=" + parameterContentList
 				+ ", neighborList=" + neighborList + ", lineContent=" + lineContent + ", astContext=" + astContext
-				+ ", receiverOrArgumentMethodCalls=" + receiverOrArgumentMethodCalls + ", sourcePosition="
-				+ sourcePosition + ", path=" + path + "]";
+				+ ", slpContext=" + slpContext + ", receiverOrArgumentMethodCalls=" + receiverOrArgumentMethodCalls
+				+ ", nameBasedReceiverMethodCalls=" + nameBasedReceiverMethodCalls + ", nameBasedArgumentMethodCalls="
+				+ nameBasedArgumentMethodCalls + ", line=" + line + ", column=" + column + ", path=" + path + "]";
 	}
+
 
 	public void setLineContent(String lineContent) {
 		this.lineContent = lineContent;

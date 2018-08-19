@@ -209,7 +209,7 @@ public class ParameterContent implements Serializable{
 			ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
 			ResolvedType resolvedType = resolvedValueDeclaration.getType();
 			TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-			System.out.println("FieldAccessExpr in ParameterContent: "+fieldAccessExpr.getScope());
+			//System.out.println("FieldAccessExpr in ParameterContent: "+fieldAccessExpr.getScope());
 			if(Character.isUpperCase(fieldAccessExpr.getScope().toString().charAt(0))&& Character.isUpperCase(fieldAccessExpr.getName().getIdentifier().charAt(0))) {
 				return fieldAccessExpr.getScope().toString()+"."+fieldAccessExpr.getName().getIdentifier();
 			}

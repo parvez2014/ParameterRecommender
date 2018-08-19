@@ -51,7 +51,7 @@ public class JSSConfigurator {
 	
 		Path path = Paths.get(rootPath);
 		ProjectRoot projectRoot = 
-			    new CollectionContext(new SymbolSolverCollectionStrategy(parserConfiguration))
+			    new CollectionContext(new SymbolSolverCollectionStrategy())
 			    .collect(path);
 		System.out.println("Source Roots: "+projectRoot.getSourceRoots().size());	
 		

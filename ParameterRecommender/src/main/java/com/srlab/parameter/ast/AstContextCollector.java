@@ -3,6 +3,7 @@ package com.srlab.parameter.ast;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -158,14 +159,15 @@ public class AstContextCollector {
 			}
 		}
 		//if the same item appear multiple times, we preserve just one
-		List<String> filteredAstContextList = new ArrayList();
+		/*List<String> filteredAstContextList = new ArrayList();
 		for(int i=0;i<astContextList.size();i++) {
 			if(i>0 && astContextList.get(i).equals(astContextList.get(i-1))) {
 				//do nothing
 			}
 			else filteredAstContextList.add(astContextList.get(i));		
-		}
-		
+		}*/
+		//remove duplicates
+		List<String> filteredAstContextList = new ArrayList(new HashSet(astContextList));
 		Collections.reverse(filteredAstContextList);
 		return filteredAstContextList;
 	}
@@ -177,14 +179,8 @@ public class AstContextCollector {
 		list.add("iterator1");
 		list.add("iterator1");
 		list.add("iterator2");
-			
-		List<String> filteredAstContextList = new ArrayList();
-		for(int i=0;i<list.size();i++) {
-			if(i>0 && list.get(i).equals(list.get(i-1))) {
-				//do nothing
-			}
-			else filteredAstContextList.add(list.get(i));		
-		}
+		List<String> filteredAstContextList = new ArrayList(new HashSet(list));
+		
 		System.out.println("List: "+filteredAstContextList);
 	}
 

@@ -63,6 +63,7 @@ public class AstDefFinderWithoutBinding extends VoidVisitorAdapter<Void> {
 		this.definingMethodCallPosition = null;
 		this.definitionType = DefinitionType.UNKNOWN;
 		this.hmMethodCallPosition = new HashMap();
+		//System.out.print("MethodDeclaration: "+methodDeclaration);
 		this.methodDeclaration.accept(this, null);
 	}
 
@@ -180,6 +181,8 @@ public class AstDefFinderWithoutBinding extends VoidVisitorAdapter<Void> {
 	@Override
 	public void visit(AssignExpr assignExpr, Void arg) {
 		// TODO Auto-generated method stub
+		
+		//System.out.println("Assignment Expr: "+assignExpr);
 		super.visit(assignExpr, arg);
 
 		final Expression lhs = assignExpr.getTarget();
@@ -252,6 +255,8 @@ public class AstDefFinderWithoutBinding extends VoidVisitorAdapter<Void> {
 		boolean isSuper = false;
 		boolean isThis = false;
 
+		//System.out.println("MethodCallExpr:::: "+m+ " "+m.getName().getBegin().get());
+		
 		if (m.getScope().isPresent() && m.getScope().get() instanceof NameExpr) {
 			NameExpr nameExpr = m.getScope().get().asNameExpr();
 			if (this.matchesVarName(nameExpr.getName())) {

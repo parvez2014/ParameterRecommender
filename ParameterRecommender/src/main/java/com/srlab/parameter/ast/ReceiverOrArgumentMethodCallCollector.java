@@ -32,12 +32,12 @@ public class ReceiverOrArgumentMethodCallCollector {
 		else return null;
 	}
 	
-	public static HashSet<String> collect(MethodCallExpr m) {
+	public static HashSet<String> collectIdentifiers(MethodCallExpr m) {
 		HashSet<String> identifierSet = new HashSet();
 		
-		if(m.getScope().isPresent()&& m.getScope().get() instanceof NameExpr) {
-			String receiver_varname = m.getScope().get().asNameExpr().getName().getIdentifier();
-			identifierSet.add(receiver_varname);
+		if(m.getScope().isPresent()) {
+			String receiver_varname = getVariableName(m.getScope().get());
+			if(receiver_varname!=null) identifierSet.add(receiver_varname);
 			if(m.getArguments().size()>0) {
 				for(Expression expression:m.getArguments()) {
 					//we need to find the receiver variable

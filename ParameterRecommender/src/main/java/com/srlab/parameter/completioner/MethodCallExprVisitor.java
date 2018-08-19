@@ -87,7 +87,8 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 	private CompilationUnit cu;
 	private HashMap<String,String> hmKeyword;
 	private HashMap<String, String> hmLineKeyword;
-	private HashMap hmParaMeterModelEntryToMethodCallExpr;
+	private HashMap<ParameterModelEntry,MethodCallExpr> hmParaMeterModelEntryToMethodCallExpr;
+	private HashMap<ModelEntry,MethodCallExpr> hmModelEntryToMethodCallExpr;
 	public static int NL=4;
 	
 	public MethodCallExprVisitor(CompilationUnit _cu, String _path) {
@@ -96,6 +97,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 		this.modelEntryList = new LinkedList();
 		this.parameterModelEntryList = new LinkedList();
 		this.hmParaMeterModelEntryToMethodCallExpr = new HashMap();
+		this.hmModelEntryToMethodCallExpr = new HashMap();
 		this.filePath = _path;
 		this.hmKeyword = new HashMap();
 		this.hmLineKeyword = new HashMap();
@@ -134,6 +136,10 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 		}
 	}
 	
+	public HashMap getHmModelEntryToMethodCallExpr() {
+		return hmModelEntryToMethodCallExpr;
+	}
+
 	public CompilationUnit getCu() {
 		return cu;
 	}
@@ -491,7 +497,21 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 			return input.substring(idxStart,curIdx);
 		}
 		
-	
+		public String getPreviousMethod(List<Token> tokenList,String recieverVariable) throws IOException
+		  {
+		  	String returnValue = "";
+		  	for(Token token:tokenList)
+		  	{
+		  		if (token.getToken().contains(recieverVariable))
+				{
+					String name = token.getToken();
+					name = name.substring(name.indexOf(".")+1);
+					returnValue = returnValue+" "+name;
+				}
+		  	}
+		  	return returnValue;
+		  }
+		
 		@Override
 		public void visit(MethodCallExpr m, Void arg) {
 			// TODO Auto-generated method stub
@@ -549,6 +569,9 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 								finalContext.add(m.getName().getIdentifier());
 								finalContext.add("(");
 
+								String prevMethods = this.getPreviousMethod(tokenList,m.getScope().get().toString()+".");
+								String prevMethodArg ="";
+
 								
 								String neighborList   = this.calcNeighbor(tokenList,tokenList.size()-1);
 								String lineContent    = this.getLineContent(tokenList, tokenList.size()-1);
@@ -589,6 +612,10 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 											parameterContentList.add(parameterContent);
 										} 
 										else if(expression instanceof NameExpr) {
+											String s = this.getPreviousMethod(tokenList,expression.toString()+".");
+											if(!s.isEmpty())
+												prevMethodArg = prevMethodArg+" "+s;
+										
 											ParameterContent parameterContent = new NameExprContent((NameExpr)expression);
 											parameterContentList.add(parameterContent);
 										}
@@ -620,8 +647,8 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 								}
 								finalContext.add(")");
 								
-								HashSet<String> receiverOrArgumentVarnames= ReceiverOrArgumentMethodCallCollector.collect(m);
 								String methodCalledOnReceiverOrArgument = "";
+								HashSet<String> receiverOrArgumentVarnames= ReceiverOrArgumentMethodCallCollector.collectIdentifiers(m);
 								if(receiverOrArgumentVarnames.size()>0) {
 									AstDefFinderWithoutBinding astDefFinderWithoutBinding = new AstDefFinderWithoutBinding(receiverOrArgumentVarnames,m.getName().getBegin().get(), methodDeclaration, JSSConfigurator.getInstance().getJpf());
 									StringBuilder sbReceiverArgumentMethodCalls = new StringBuilder();
@@ -644,8 +671,9 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 									sbSlpContext.append(" ");
 								}
 								
-								ModelEntry modelEntry = new ModelEntry(methodCallEntity, parameterContentList, neighborList, lineContent,sbAstContext.toString(),methodCalledOnReceiverOrArgument,sbSlpContext.toString().trim(),new SourcePosition(m.getName().getBegin().get()),this.filePath);
+								ModelEntry modelEntry = new ModelEntry(methodCallEntity, parameterContentList, neighborList, lineContent,sbAstContext.toString(), methodCalledOnReceiverOrArgument, prevMethods, prevMethodArg,sbSlpContext.toString().trim(),m.getName().getBegin().get().column,m.getName().getBegin().get().line,this.filePath);
 								this.modelEntryList.add(modelEntry);
+								hmModelEntryToMethodCallExpr.put(modelEntry,m);
 								if(parameterContentList.size()>0) {
 									for(int i=0;i<parameterContentList.size();i++) {
 										ParameterModelEntry parameterModelEntry = new ParameterModelEntry(modelEntry, receiverType, i, this.getFilePath());

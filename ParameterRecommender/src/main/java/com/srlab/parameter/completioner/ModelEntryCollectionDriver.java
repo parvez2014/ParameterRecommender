@@ -4,8 +4,12 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -22,7 +26,7 @@ import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.config.Config;
 import com.srlab.parameter.node.ParameterContent;
 
-public class ModelEntryCollectionDriver {
+public class ModelEntryCollectionDriver implements Serializable {
 	
 	private String repositoryPath;
 	private List<ModelEntry> modelEntryList;
@@ -44,11 +48,11 @@ public class ModelEntryCollectionDriver {
 		return fileList;
 	}
 	
-	public void run() throws IOException {
-		List<String> fileList = this.collectSourceFiles(new File(this.repositoryPath));
-		System.out.println("Total Collected Files: "+fileList.size());
+	public void process(String repo, BufferedWriter bw){
+	
 		int counter = 0;
-		BufferedWriter bw = new BufferedWriter(new FileWriter(Config.MODEL_ENTRY_OUTPUT_PATH));
+		List<String> fileList = this.collectSourceFiles(new File(repo));
+		System.out.println("Total Collected Files: "+fileList.size());
 		List<List<String>> slp_context = new ArrayList();
 
 		for(String file:fileList) {
@@ -70,8 +74,7 @@ public class ModelEntryCollectionDriver {
 							this.modelEntryList.addAll(methodCallExprVisitor.getModelEntryList());
 							fileModelEntryList.addAll(methodCallExprVisitor.getModelEntryList());
 							fileParameterModelEntryList.addAll(methodCallExprVisitor.getParameterModelEntryList());
-							//System.out.println("I am here"+methodCallExprVisitor.getModelEntryList().size());
-							//write the information
+					
 							for(ModelEntry modelEntry:methodCallExprVisitor.getModelEntryList()) {
 								StringBuffer sbParameterAbsStringRep = new StringBuffer("");
 								StringBuffer sbParameterAbsStringRepWithLiteral = new StringBuffer("");
@@ -82,12 +85,13 @@ public class ModelEntryCollectionDriver {
 									sbParameterAbsStringRepWithLiteral.append(parameterContent.getAbsStringRepWithLiteral());
 									sbParameterAbsStringRepWithLiteral.append(" ");
 								}
-								
+								bw.write("MethodCallExpression: "+methodCallExprVisitor.getHmModelEntryToMethodCallExpr().get(modelEntry));
+								bw.newLine();
 								bw.write("MethodName: "+modelEntry.getMethodCallEntity().getMethodDeclarationEntity().getName());
 								bw.newLine();
 								bw.write("ReceiverType: "+modelEntry.getMethodCallEntity().getReceiverQualifiedName());
 								bw.newLine();
-								bw.write("SourcePosition: "+modelEntry.getSourcePosition().column+" : " + modelEntry.getSourcePosition().line);
+								bw.write("SourcePosition: "+modelEntry.getColumn()+" : " + modelEntry.getLine());
 								bw.newLine();
 								bw.write("Path: "+modelEntry.getPath());
 								bw.newLine();
@@ -106,6 +110,10 @@ public class ModelEntryCollectionDriver {
 								bw.newLine();
 								bw.write("MethodCalledOnReceiverOrArguments: "+modelEntry.getReceiverOrArgumentMethodCalls());
 								bw.newLine();
+								bw.write("RecMethodCalls: "+modelEntry.getNameBasedReceiverMethodCalls());
+								bw.newLine();
+								bw.write("ArgMethodCalls: "+modelEntry.getNameBasedArgumentMethodCalls());
+								bw.newLine();
 							}
 						}
 					}	
@@ -118,23 +126,33 @@ public class ModelEntryCollectionDriver {
 			this.hmFileToModelEntries.put(file,fileModelEntryList);
 			this.hmFileToParameterModelEntries.put(file,fileParameterModelEntryList);
 		}
-		bw.close();
 	}
 	
-	public void newRun() {
-		File root = new File("/media/parvez/IntelSSD/research/parameter_recommendation/repository/main");
-		List<String> filePathList = this.collectSourceFiles(root);
-		System.out.println("FilePath: "+filePathList.size());
+	public void run() throws IOException {
+		File root = new File(Config.REPOSITORY_PATH);
+		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(Config.MODEL_ENTRY_OUTPUT_PATH)));	
+	    JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH, Config.EXTERNAL_DEPENDENCY_PATH);
+	    this.process(Config.REPOSITORY_PATH, bw);
+	    bw.close();
+	}
+	
+	public void divideAndRun() throws IOException {
+		File root = new File(Config.REPOSITORY_PATH);
+		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(Config.MODEL_ENTRY_OUTPUT_PATH)));
+		
 		File listOfFiles[] = root.listFiles();
-		int totalCompilationUnit =0;
-		for(File child:listOfFiles) {
-			CompilationUnitCollector cuc = new CompilationUnitCollector();
-			List<CompilationUnit> cuList = cuc.collectCompilationUnits(child);
-			totalCompilationUnit = totalCompilationUnit +cuList.size();
-			if(cuList.size()>500)
-			System.out.println("File: "+child.getName()+" : "+cuList.size());
+		int totalScannedFiles = 0;
+		for(int i=0;i<listOfFiles.length;i++) {
+			File child = listOfFiles[i];
+			System.out.println("Directories Processed: "+i+"/"+listOfFiles.length+" Total Scanned Files: "+totalScannedFiles);
+			List<String> filePathList = this.collectSourceFiles(child);
+			totalScannedFiles = totalScannedFiles + filePathList.size();
+			
+			JSSConfigurator.getInstance().init(child.getAbsolutePath(), Config.EXTERNAL_DEPENDENCY_PATH);
+			this.process(child.getAbsolutePath(), bw);
+			JSSConfigurator.getInstance().clear();
 		}
-		System.out.println("Total CompilationUnit: "+totalCompilationUnit);
+		bw.close();
 	}
 	
 	public String getRepositoryPath() {
@@ -160,9 +178,45 @@ public class ModelEntryCollectionDriver {
 		return hmFileToModelEntries;
 	}
 
+	public void save(File filename) {
+	    FileOutputStream fos = null;
+        ObjectOutputStream out = null;
+        try {
+            fos = new FileOutputStream(filename);
+            out = new ObjectOutputStream(fos);
+            out.writeObject(this);
+
+            out.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+      
+	}
+	public static ModelEntryCollectionDriver load(File filename) {
+	    FileInputStream fos = null;
+        ObjectInputStream out = null;
+        try {
+            fos = new FileInputStream(filename);
+            out = new ObjectInputStream(fos);
+            ModelEntryCollectionDriver driver = (ModelEntryCollectionDriver)out.readObject();
+            out.close();
+            return driver;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+      return null;
+	}
 	public static void main(String args[]) {
-		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH);
+		//JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH);
 		ModelEntryCollectionDriver modelEntryCollectionDriver = new ModelEntryCollectionDriver(Config.REPOSITORY_PATH);
-		modelEntryCollectionDriver.newRun();
+		try {
+			modelEntryCollectionDriver.divideAndRun();
+			modelEntryCollectionDriver.save(new File(Config.ROOT_PATH+File.separator+Config.REPOSITORY_NAME+".mec"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		ModelEntryCollectionDriver driver = ModelEntryCollectionDriver.load(new File(Config.ROOT_PATH+File.separator+Config.REPOSITORY_NAME+".mec"));
+		System.out.println("Driver = "+driver.getModelEntryList().size());
 	}
 }

@@ -1,8 +1,10 @@
 package com.srlab.parameter.completioner;
 
+import java.io.Serializable;
+
 import com.srlab.parameter.node.ParameterContent;
 
-public class ParameterModelEntry {
+public class ParameterModelEntry implements Serializable{
 
 	private ModelEntry modelEntry;
 	private String receiverType;

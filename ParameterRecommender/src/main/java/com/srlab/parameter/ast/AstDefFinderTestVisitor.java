@@ -187,7 +187,21 @@ public class AstDefFinderTestVisitor extends VoidVisitorAdapter<Void> {
 					if (Config.isInteresting(methodQualifiedName)) {
 						AstContextCollector astContextCollector = new AstContextCollector();
 						List<String> list = astContextCollector.collectAstContext(m,m.getName().getBegin().get());
-						System.out.println("MethodCallExpr: "+m+ "    AST Context List: " + list);
+						System.out.println("MethodCallExpr****** "+m+ "    AST Context List: " + list +" Pos: "+m.getName().getBegin().get());
+						
+						String methodCalledOnReceiverOrArgument = "";
+						HashSet<String> receiverOrArgumentVarnames= ReceiverOrArgumentMethodCallCollector.collectIdentifiers(m);
+						System.out.println("receiverOrArgumentVarnames: "+receiverOrArgumentVarnames);
+						if(receiverOrArgumentVarnames.size()>0) {
+							AstDefFinderWithoutBinding astDefFinderWithoutBinding = new AstDefFinderWithoutBinding(receiverOrArgumentVarnames,m.getName().getBegin().get(), methodDeclaration, JSSConfigurator.getInstance().getJpf());
+							StringBuilder sbReceiverArgumentMethodCalls = new StringBuilder();
+							for(String methodCall:astDefFinderWithoutBinding.getMethodCalls()) {
+								sbReceiverArgumentMethodCalls.append(methodCall);
+								sbReceiverArgumentMethodCalls.append(" ");
+							}
+							methodCalledOnReceiverOrArgument = sbReceiverArgumentMethodCalls.toString();
+						}
+						System.out.println("MethodCallExpr: "+m+ ": "+m.getName().getBegin().get().line+"    Receiver Context List: " + methodCalledOnReceiverOrArgument);
 						
 						/*if (m.getScope().get() instanceof NameExpr) {
 							String varname = m.getScope().get().asNameExpr().getName().getIdentifier();
@@ -210,9 +224,9 @@ public class AstDefFinderTestVisitor extends VoidVisitorAdapter<Void> {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		JSSConfigurator.getInstance().init("/home/parvez/research/ParameterCompletion/repository/jedit-svn", Config.EXTERNAL_DEPENDENCY_PATH);
+		JSSConfigurator.getInstance().init("/media/parvez/IntelSSD/research/parameter_recommendation/parameter_workspace/ParameterTest", Config.EXTERNAL_DEPENDENCY_PATH);
 		CompilationUnitCollector cuc = new CompilationUnitCollector();
-		List<CompilationUnit> cuList = cuc.collectCompilationUnits(new File("/home/parvez/research/ParameterCompletion/repository/jedit-svn"));
+		List<CompilationUnit> cuList = cuc.collectCompilationUnits(new File("/media/parvez/IntelSSD/research/parameter_recommendation/parameter_workspace/ParameterTest"));
 		for(int i=0;i<cuList.size();i++) {
 			System.out.println("Progress: " + i+" "+cuList.size());
 			AstDefFinderTestVisitor astDefFinder = new AstDefFinderTestVisitor(cuList.get(i));
