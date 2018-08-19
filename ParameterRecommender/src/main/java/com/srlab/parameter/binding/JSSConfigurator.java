@@ -58,7 +58,7 @@ public class JSSConfigurator {
 		//step-2: add java parser type solver
 			for(int i=0;i<projectRoot.getSourceRoots().size();i++) {
 			SourceRoot sourceroot = projectRoot.getSourceRoots().get(i);
-			sourceroot.setParserConfiguration(parserConfiguration);
+		
 			System.out.println("["+i+"] "+sourceroot.getRoot());	
 			combinedTypeSolver.add(new JavaParserTypeSolver(sourceroot.getRoot())); 
 		}	

@@ -210,7 +210,7 @@ public class ModelEntryCollectionDriver implements Serializable {
 		//JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH);
 		ModelEntryCollectionDriver modelEntryCollectionDriver = new ModelEntryCollectionDriver(Config.REPOSITORY_PATH);
 		try {
-			modelEntryCollectionDriver.divideAndRun();
+			modelEntryCollectionDriver.run();
 			modelEntryCollectionDriver.save(new File(Config.ROOT_PATH+File.separator+Config.REPOSITORY_NAME+".mec"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
