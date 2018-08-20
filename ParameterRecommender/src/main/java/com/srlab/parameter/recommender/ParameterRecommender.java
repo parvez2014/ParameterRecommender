@@ -2,6 +2,7 @@ package com.srlab.parameter.recommender;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -49,7 +50,6 @@ public class ParameterRecommender {
 	private MultiKeyMap mkRecommenderModel;
 	private List<ModelEntry> trainingModelEntryList;
 	private List<ModelEntry> testModelEntryList;
-	
 	public ParameterRecommender() {
 		this.mkRecommenderModel = new MultiKeyMap();
 	}
@@ -73,64 +73,80 @@ public class ParameterRecommender {
 						methodCallEntity.getMethodDeclarationEntity().getName(),
 						parameterModelEntry.getParameterPosition(),list);
 			}
-			
 		}
 	}
 	
-	//ideally we just need the test parameter model entries. But the problem is that we also need o know the 
+	//ideally we just need the test parameter model entries. But the problem is that we also need to know the 
 	// variables declared in the query context, method declaration and method call expression. These are not captured by
 	//parameter model entries. So we save the test files. All framework methods called in those files are being tested
 	public void test(List<ParameterModelEntry> testParameterModelEntryList) {
 		ResultCollector resultCollector = new ResultCollector();
 		MultiKeyMap mkTestIndex = new MultiKeyMap();
-		//Step-0: Index test parameter model entries
-		for(ParameterModelEntry parameterModelEntry:testParameterModelEntryList) {
-			SourcePosition methodCallSourcePosition = parameterModelEntry.getModelEntry().getMethodCallEntity().getPosition();
-			mkTestIndex.put(parameterModelEntry.getFilePath(),methodCallSourcePosition.line+":"+methodCallSourcePosition.column, parameterModelEntry.getParameterPosition(),parameterModelEntry);
+		// Step-0: Index test parameter model entries
+		for (ParameterModelEntry parameterModelEntry : testParameterModelEntryList) {
+			SourcePosition methodCallSourcePosition = parameterModelEntry.getModelEntry().getMethodCallEntity()
+					.getPosition();
+			mkTestIndex.put(parameterModelEntry.getFilePath(),
+					methodCallSourcePosition.line + ":" + methodCallSourcePosition.column,
+					parameterModelEntry.getParameterPosition(), parameterModelEntry);
 		}
-		
-		
+
 		int testCaseCounter = 0;
-		//Step-1: collect all files that contain the test data
-		Set<String> testFilePathSet = new HashSet(); 
-		for(ParameterModelEntry testParameterModelEntry:testParameterModelEntryList) {
+		// Step-1: collect all files that contain the test data
+		Set<String> testFilePathSet = new HashSet();
+		for (ParameterModelEntry testParameterModelEntry : testParameterModelEntryList) {
 			testFilePathSet.add(testParameterModelEntry.getFilePath());
 		}
-		//Step-2: iterate through all test cases 
-		for(String filePath:testFilePathSet) {
+		// Step-2: iterate through all test cases
+		for (String filePath : testFilePathSet) {
 			try {
 				CompilationUnit cu = JavaParser.parse(new FileInputStream(filePath));
-				
-				for(TypeDeclaration typeDeclaration:cu.getTypes()) {
-					for(Object obj:typeDeclaration.getMethods()) {
-						if(obj instanceof MethodDeclaration) {
-							MethodDeclaration md = (MethodDeclaration)obj;
-							MethodCallExprVisitor methodCallExprVisitor = new MethodCallExprVisitor(cu,filePath);
-							md.accept(methodCallExprVisitor,null);
-							//collect parameter model entries and method call expressions associated to it
-							for (ParameterModelEntry parameterModelEntry:methodCallExprVisitor.getParameterModelEntryList()) {
-								//we only test parameters of following expression type
-								SourcePosition sourcePosition  = parameterModelEntry.getModelEntry().getMethodCallEntity().getPosition();
-								if(	mkTestIndex.containsKey(parameterModelEntry.getFilePath(),sourcePosition.line+":"+sourcePosition.column,parameterModelEntry.getParameterPosition())//parameterModelEntry.getParameterContent() instanceof ClassInstanceCreationContent
-									&& parameterModelEntry.getParameterContent() instanceof QualifiedNameContent
-									//parameterModelEntry.getParameterContent()    instanceof NullLiteralContent
-									//|| parameterModelEntry.getParameterContent() instanceof StringLiteralContent
-									//|| parameterModelEntry.getParameterContent() instanceof CharLiteralContent
-									//|| parameterModelEntry.getParameterContent() instanceof NumberLiteralContent
-									//|| parameterModelEntry.getParameterContent() instanceof BooleanLiteralContent
-									
-									//|| parameterModelEntry.getParameterContent() instanceof ThisExpressionContent
-									//parameterModelEntry.getParameterContent() instanceof NameExprContent
-									//parameterModelEntry.getParameterContent() instanceof MethodInvocationContent
-								) {
-									System.out.println("Test Case Counter: "+(testCaseCounter++)+"/"+testParameterModelEntryList.size());
-									System.out.println("Test Case: " + (parameterModelEntry.getParameterContent().getStringParamNode()));
-									MethodCallExpr methodCallExpr = (MethodCallExpr)methodCallExprVisitor.getHmParaMeterModelEntryToMethodCallExpr().get(parameterModelEntry);
-									this.testInstance(parameterModelEntry, 	methodCallExpr, md, resultCollector);
+
+				for (TypeDeclaration typeDeclaration : cu.getTypes()) {
+					for (Object obj : typeDeclaration.getMethods()) {
+						if (obj instanceof MethodDeclaration) {
+							MethodDeclaration md = (MethodDeclaration) obj;
+							MethodCallExprVisitor methodCallExprVisitor = new MethodCallExprVisitor(cu, filePath);
+							md.accept(methodCallExprVisitor, null);
+							// collect parameter model entries and method call expressions associated to it
+							for (ParameterModelEntry parameterModelEntry : methodCallExprVisitor
+									.getParameterModelEntryList()) {
+								// we only test parameters of following expression type
+								SourcePosition sourcePosition = parameterModelEntry.getModelEntry()
+										.getMethodCallEntity().getPosition();
+
+								if (mkTestIndex.containsKey(parameterModelEntry.getFilePath(),
+										sourcePosition.line + ":" + sourcePosition.column,
+										parameterModelEntry.getParameterPosition())) {
+
+									ParameterModelEntry testModelEntry = (ParameterModelEntry) mkTestIndex.get(
+											parameterModelEntry.getFilePath(),
+											sourcePosition.line + ":" + sourcePosition.column,
+											parameterModelEntry.getParameterPosition());
+									if (testModelEntry.getParameterContent() instanceof NullLiteralContent
+											//|| testModelEntry.getParameterContent() instanceof StringLiteralContent
+											//|| testModelEntry.getParameterContent() instanceof CharLiteralContent
+											//|| testModelEntry.getParameterContent() instanceof NumberLiteralContent
+											//|| testModelEntry.getParameterContent() instanceof BooleanLiteralContent
+											//|| parameterModelEntry.getParameterContent() instanceof ThisExpressionContent
+											//parameterModelEntry.getParameterContent() instanceof NameExprContent
+											
+								//|| parameterModelEntry.getParameterContent() instanceof QualifiedNameContent
+								//|| parameterModelEntry.getParameterContent() instanceof ClassInstanceCreationContent
+								 ||parameterModelEntry.getParameterContent() instanceof MethodInvocationContent
+											) {
+										System.out.println("Test Case Counter: " + (testCaseCounter++) + "/"
+												+ testParameterModelEntryList.size());
+										System.out.println("Raw Test Case: "
+												+ (parameterModelEntry.getParameterContent().getRawStringRep()));
+										MethodCallExpr methodCallExpr = (MethodCallExpr) methodCallExprVisitor
+												.getHmParaMeterModelEntryToMethodCallExpr().get(parameterModelEntry);
+										this.testInstance(parameterModelEntry, methodCallExpr, md, resultCollector);
+									}
 								}
 							}
 						}
-					}	
+					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -145,18 +161,18 @@ public class ParameterRecommender {
 			QualifiedNameContent qnc = (QualifiedNameContent)parameterContent;
 			SimpleNameRecommender simpleNameRecommender = new SimpleNameRecommender(snc,"",qnc.getTypeQualifiedName());
 			List<String> varList = simpleNameRecommender.recommend();
-			System.out.println("Scope: "+qnc.getScope());
+			//System.out.println("Scope: "+qnc.getParent().getAbsStringRep());
 			System.out.println("identifier: "+qnc.getIdentifier());
-			
-			if(Character.isUpperCase(qnc.getScope().charAt(0))&& Character.isUpperCase(qnc.getIdentifier().charAt(0))) {
+			return parameterContent.getRawStringRep().trim();
+			/*if(Character.isUpperCase(qnc.getScope().charAt(0))&& Character.isUpperCase(qnc.getIdentifier().charAt(0))) {
 				return qnc.getScope().toString()+"."+qnc.getIdentifier();
 			}
 			else if (Character.isUpperCase(qnc.getScope().charAt(0))){
 				return qnc.getScope()+"."+varList.get(0);
 			}
 			else {
-				throw new RuntimeException("Cannot Handle : "+qnc);
-			}
+				return parameterContent.getAbsStringRep();
+			}*/
 		}
 		else if(parameterContent instanceof NameExprContent) {
 			NameExprContent nameExprContent = (NameExprContent) parameterContent;
@@ -250,18 +266,19 @@ public class ParameterRecommender {
 			
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 			boolean found = false;
+			boolean simpleNameProcessing = false;
 			int rank = -1;
-			System.out.print("Query: ");
-			query.getParameterContent().print();
-			System.out.println("Query: "+query.getFilePath()+" "+query.getModelEntry());
+			System.out.println("******************Query: "+ query.getParameterContent().getRawStringRep()+"  AbsSTringRep: "+query.getParameterContent().getAbsStringRep()+"  Other: "+query.getParameterContent().getAbsStringRepWithLiteral());
+			//System.out.println("Query: "+query.getFilePath()+" "+query.getModelEntry());
 			for(int i=0;i<possibleCandidateList.size();i++){
 				ParameterModelEntry candidate = possibleCandidateList.get(i);
+				
+				//print the top-20 candidates
 				if(i<20) {
-					System.out.print("["+i+"] ");
-					candidate.getParameterContent().print();
+					System.out.println("possible Candidate ["+i+"] "+candidate.getParameterContent().getAbsStringRep());
 				}
+				
 				rank++;
-				System.out.println("Candidate: "+candidate);
 				if(candidate.getParameterContent() instanceof StringLiteralContent 
 						&& query.getParameterContent() instanceof StringLiteralContent 
 						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())){
@@ -270,7 +287,26 @@ public class ParameterRecommender {
 				}
 				else if(candidate.getParameterContent() instanceof NumberLiteralContent
 						&& query.getParameterContent() instanceof NumberLiteralContent 
-						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep().trim())){
+						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())){
+					found=true;
+					break;
+				}
+				
+				else if(candidate.getParameterContent() instanceof BooleanLiteralContent 
+						&& query.getParameterContent() instanceof BooleanLiteralContent 
+						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())){
+					found=true;
+					break;
+				}
+				else if(candidate.getParameterContent() instanceof CharLiteralContent 
+						&& query.getParameterContent() instanceof CharLiteralContent 
+						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())){
+					found=true;
+					break;
+				}
+				else if(candidate.getParameterContent() instanceof NullLiteralContent 
+						&& query.getParameterContent() instanceof NullLiteralContent 
+						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())){
 					found=true;
 					break;
 				}
@@ -280,25 +316,7 @@ public class ParameterRecommender {
 					found=true;
 					break;
 				}
-				else if(candidate.getParameterContent() instanceof BooleanLiteralContent 
-						&& query.getParameterContent() instanceof BooleanLiteralContent 
-						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep().toString().trim())){
-					found=true;
-					break;
-				}
-				else if(candidate.getParameterContent() instanceof CharLiteralContent 
-						&& query.getParameterContent() instanceof CharLiteralContent 
-						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep().toString().trim())){
-					found=true;
-					break;
-				}
-				else if(candidate.getParameterContent() instanceof NullLiteralContent 
-						&& query.getParameterContent() instanceof NullLiteralContent 
-						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep().trim())){
-					found=true;
-					break;
-				}
-				else if(candidate.getParameterContent() instanceof NameExprContent && query.getParameterContent() instanceof NameExprContent) {
+				else if(simpleNameProcessing==false && candidate.getParameterContent() instanceof NameExprContent && query.getParameterContent() instanceof NameExprContent) {
 					//now replace the variable
 					int parameterPosition = candidate.getParameterPosition();
 					ParameterEntity parameterEntity = query.getModelEntry().getMethodCallEntity().getMethodDeclarationEntity().getParameterList().get(parameterPosition);
@@ -311,10 +329,11 @@ public class ParameterRecommender {
 					List<String> varList = simpleNameRecommender.recommend();
 										
 					System.out.println("Rank: "+rank +"  Var List: "+varList);
+					if(varList.size()>0) simpleNameProcessing = true;
 					if(varList.size()>0 && varList.get(0).split(":")[0].equals(((NameExprContent)query.getParameterContent()).getIdentifier())){
 						found = true;
 						 System.out.println("Rank: "+rank);
-						break;
+						 break;
 					}
 					else if(varList.size()>1 && varList.get(1).split(":")[0].equals(((NameExprContent)query.getParameterContent()).getIdentifier())){
 						rank++;
@@ -343,7 +362,11 @@ public class ParameterRecommender {
 				}
 				
 				else if(candidate.getParameterContent() instanceof ClassInstanceCreationContent 
+						
 						&& query.getParameterContent() instanceof ClassInstanceCreationContent) {
+					System.out.println("Query Abs String: "+query.getParameterContent().getAbsStringRep());
+					System.out.println("Candidate: "+this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector));
+				
 					if(this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector).equals(query.getParameterContent().getAbsStringRep())) {
 						 found = true;
 						 break;
@@ -351,11 +374,13 @@ public class ParameterRecommender {
 				}
 				else if(candidate.getParameterContent() instanceof QualifiedNameContent 
 						&& query.getParameterContent() instanceof QualifiedNameContent) {
-					//System.out.println("Query Abs String: "+query.getParameterContent().getAbsStringRep());
+					System.out.println("Query Abs String: "+query.getParameterContent().getRawStringRep());
 					//System.out.println("Rec: "+candidate.getParameterContent().getAbsStringRep()+" :NameReplaced: "+this.getNameReplacedStringExpr(candidate.getParameterContent(), simpleNameCollector));
 					
-					if(this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector).equals(query.getParameterContent().getAbsStringRep())) {
-						 found = true;
+					//if(this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector).equals(query.getParameterContent().getAbsStringRep())) {
+					if(candidate.getParameterContent().getRawStringRep().equals(query.getParameterContent().getRawStringRep())) {
+						
+						found = true;
 						 break;
 					 }
 				}
@@ -363,6 +388,8 @@ public class ParameterRecommender {
 						&& query.getParameterContent() instanceof MethodInvocationContent
 						) {
 					System.out.println("Query Abs String: "+query.getParameterContent().getAbsStringRep());
+					System.out.println("Candidate: "+this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector));
+					
 					System.out.println("Rec: "+candidate.getParameterContent().getAbsStringRep()+" :NameReplaced: "+this.getNameReplacedStringExpr(candidate.getParameterContent(), simpleNameCollector));
 				
 					if(this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector).equals(query.getParameterContent().getAbsStringRep())) {
@@ -531,12 +558,25 @@ public class ParameterRecommender {
 		// TODO Auto-generated method stub
 		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH);
 		ModelEntryCollectionDriver modelEntryCollectionDriver = new ModelEntryCollectionDriver(Config.REPOSITORY_PATH);
-		modelEntryCollectionDriver.run();
+		try {
+			modelEntryCollectionDriver.run();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		System.out.println("Total Model Entry Keys: "+modelEntryCollectionDriver.getHmFileToModelEntries().keySet().size());
 		TrainingTestGenerator trainingTestGenerator = new TrainingTestGenerator(modelEntryCollectionDriver.getHmFileToParameterModelEntries());
 		trainingTestGenerator.genTrainingTestDataSet();
+		int count = 0;
+		for(ParameterModelEntry parameterModelEntry: trainingTestGenerator.getAllParameterModelEntryList()) {
+			if(parameterModelEntry.getParameterContent() instanceof ClassInstanceCreationContent) {
+				count++;
+				System.out.println("Parameter Expression: "+" Raw: "+parameterModelEntry.getParameterContent().getRawStringRep()+"  "+parameterModelEntry.getParameterContent().getAbsStringRep()+"Abs:   "+parameterModelEntry.getParameterContent().getAbsStringRepWithLiteral());
+			}
+		}
+		System.out.println("Count: "+count);
 		ParameterRecommender parameterRecommender = new ParameterRecommender();
 		parameterRecommender.train(trainingTestGenerator.getTrainingParameterModelEntryList());
-		parameterRecommender.test(trainingTestGenerator.getTrainingParameterModelEntryList());
+		parameterRecommender.test(trainingTestGenerator.getTestParameterModelEntryList());
 	}
 }

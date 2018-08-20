@@ -21,6 +21,7 @@ import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.expr.ThisExpr;
+import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
@@ -178,8 +179,15 @@ public class ParameterContent implements Serializable{
 			return "("+typeDescriptor.getTypeQualifiedName()+")"+this.getAbsStringRepWithLiteral(ce.getExpression());
 		}
 		else if(expression instanceof ObjectCreationExpr) {
+			try {
 			ObjectCreationExpr objectCreationExpr = (ObjectCreationExpr)expression;
-			if(objectCreationExpr.getScope().isPresent()==false) {
+			//System.out.println("Object Creation Expression: "+objectCreationExpr.getType());
+			SymbolReference<ResolvedConstructorDeclaration> srResolvedConstructorDeclaration = JSSConfigurator.getInstance().getJpf().solve(objectCreationExpr);
+			return "new " + srResolvedConstructorDeclaration.getCorrespondingDeclaration().getClassName()+"("+")";
+			}catch(Exception e) {
+				return expression.toString();
+			}
+			/*if(objectCreationExpr.getScope().isPresent()==false) {
 				ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpr.getType());
 				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 				return "new_"+typeDescriptor.getTypeQualifiedName()+"("+")";
@@ -188,7 +196,7 @@ public class ParameterContent implements Serializable{
 				ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpr.getType());
 				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 				return "new_"+this.getAbsStringRepWithLiteral(objectCreationExpr.getScope().get())+"."+typeDescriptor.getTypeQualifiedName()+"("+")";
-			}
+			}*/
 		}
 		else if(expression instanceof MethodCallExpr) {
 			MethodCallExpr methodCallExpr = (MethodCallExpr)expression;
@@ -238,14 +246,13 @@ public class ParameterContent implements Serializable{
 						TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 						return "SN:" + typeDescriptor.getTypeQualifiedName() + "." + "this";
 					} else
-						return null;
+						return thisExpr.toString();
 				} else if (thisExpr.getClassExpr().get() instanceof FieldAccessExpr) { // a.b.this
 					FieldAccessExpr fieldAccessExpr = (FieldAccessExpr) thisExpr.getClassExpr().get();
 					return this.getAbsStringRepWithLiteral(fieldAccessExpr)+"."+"this";
 				} else
-					return null;
+					return thisExpr.toString();
 			}
-
 			return thisExpr.toString();
 		}
 		else return null;
@@ -282,8 +289,12 @@ public class ParameterContent implements Serializable{
 			return "("+typeDescriptor.getTypeQualifiedName()+")"+this.getAbsStringRep(ce.getExpression());
 		}
 		else if(expression instanceof ObjectCreationExpr) {
+			try {
 			ObjectCreationExpr objectCreationExpr = (ObjectCreationExpr)expression;
-			if(objectCreationExpr.getScope().isPresent()==false) {
+			//System.out.println("Object Creation Expression: "+objectCreationExpr.getType());
+			SymbolReference<ResolvedConstructorDeclaration> srResolvedConstructorDeclaration = JSSConfigurator.getInstance().getJpf().solve(objectCreationExpr);
+			return "new " + srResolvedConstructorDeclaration.getCorrespondingDeclaration().getClassName()+"("+")";
+			/*if(objectCreationExpr.getScope().isPresent()==false) {
 				ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpr.getType());
 				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 				return "new "+typeDescriptor.getTypeQualifiedName()+"("+")";
@@ -292,6 +303,9 @@ public class ParameterContent implements Serializable{
 				ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpr.getType());
 				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 				return "new "+this.getAbsStringRep(objectCreationExpr.getScope().get())+"."+typeDescriptor.getTypeQualifiedName()+"("+")";
+			}*/
+			}catch(Exception e) {
+				return expression.toString();
 			}
 		}
 		else if(expression instanceof MethodCallExpr) {
@@ -325,7 +339,6 @@ public class ParameterContent implements Serializable{
 		
 	    else if (expression instanceof ThisExpr) {
 			ThisExpr thisExpr = (ThisExpr) expression;
-			// TODO Auto-generated method stub
 			if (thisExpr.getClassExpr().isPresent()) {
 				if (thisExpr.getClassExpr().get() instanceof ClassExpr) { // Example: Worls.this
 					return thisExpr.getClassExpr().get().toString() + "." + "this";
@@ -340,16 +353,15 @@ public class ParameterContent implements Serializable{
 						ResolvedType resolvedType = resolvedValueDeclaration.getType();
 						TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 						return nameExpr.getName().getIdentifier() + "." + "this";
-					} else
-						throw new RuntimeException("Error in creating absStringRep of fieldAccessExpr: "+expression);
+					} else return thisExpr.toString();
 				} else if (thisExpr.getClassExpr().get() instanceof FieldAccessExpr) { // a.b.this
 					FieldAccessExpr fieldAccessExpr = (FieldAccessExpr) thisExpr.getClassExpr().get();
 					return this.getAbsStringRep(fieldAccessExpr)+"."+"this";
 				} else
-					throw new RuntimeException("Error in creating absStringRep of fieldAccessExpr: "+expression);
+					return thisExpr.toString();
 			}
 			else  return thisExpr.toString();
-		}
+	    }
 		else throw new RuntimeException("Error in creating absStringRep of fieldAccessExpr: "+expression);
 	}
 	/*public  String getStringRep(Node node) {

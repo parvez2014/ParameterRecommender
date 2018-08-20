@@ -22,14 +22,14 @@ public class UnknownContent extends ParameterContent{
 		this.typeQualifiedName = null;
 		
 		//try to resolve the type binding
-		JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
+		/*JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
 		SymbolReference<? extends ResolvedValueDeclaration>  srResolvedValueDeclaration  = jpf.solve(expression);
 		if(srResolvedValueDeclaration.isSolved()) {
 			ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
 			ResolvedType resolvedType = resolvedValueDeclaration.getType();
 			TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 			this.typeQualifiedName = typeDescriptor.getTypeQualifiedName();
-		}
+		}*/
 	}
 	
 	public String getTypeQualifiedName() {

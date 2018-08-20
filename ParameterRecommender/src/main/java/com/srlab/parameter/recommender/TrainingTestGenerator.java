@@ -1,5 +1,6 @@
 package com.srlab.parameter.recommender;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,11 +18,13 @@ public class TrainingTestGenerator {
 	private HashMap<String,List<ParameterModelEntry>> hmFileToParameterModelEntries;
 	private List<ParameterModelEntry> testParameterModelEntryList;
 	private List<ParameterModelEntry> trainingParameterModelEntryList;
+	private List<ParameterModelEntry> allParameterModelEntryList;
 	private List<String> testSourceFilePath;
 	
 	public TrainingTestGenerator(HashMap<String,List<ParameterModelEntry>> _hmFileToParameterModelEntryList) {
 		this.hmFileToParameterModelEntries = _hmFileToParameterModelEntryList;
 		this.testParameterModelEntryList = new ArrayList();
+		this.allParameterModelEntryList = new ArrayList();
 		this.trainingParameterModelEntryList = new ArrayList();
 		this.testSourceFilePath = new ArrayList();
 	}
@@ -38,25 +41,25 @@ public class TrainingTestGenerator {
 		this.testParameterModelEntryList.clear();
 		this.trainingParameterModelEntryList.clear();
 		this.testSourceFilePath.clear();
+		this.allParameterModelEntryList.clear();
 		
 		HashSet<String> testPathSet = new HashSet();
 		List<String> javaFileList = new ArrayList(this.hmFileToParameterModelEntries.keySet());
 		
-		List<ParameterModelEntry> parameterModelEntryList = new ArrayList();
 		//step-1: collect all model entries
 		int totalParameterModelEntries = 0;
 		for(String file:javaFileList) {
 			totalParameterModelEntries = totalParameterModelEntries + hmFileToParameterModelEntries.get(file).size();
-			parameterModelEntryList.addAll(hmFileToParameterModelEntries.get(file));
+			allParameterModelEntryList.addAll(hmFileToParameterModelEntries.get(file));
 		}
 		
 		System.out.println("Total Parameter Model Entries: "+ totalParameterModelEntries );
 		
 		//step-2: collect 80% of model entries for training
-		Collections.shuffle(parameterModelEntryList);
+		Collections.shuffle(allParameterModelEntryList);
 		int totalTestModelEntries = (int)(totalParameterModelEntries*(0.20f));
 		int remains = totalTestModelEntries;
-		for(ParameterModelEntry parameterModelEntry:parameterModelEntryList) {
+		for(ParameterModelEntry parameterModelEntry:allParameterModelEntryList) {
 			if(remains>0) {
 				testPathSet.add(parameterModelEntry.getFilePath());
 				testParameterModelEntryList.add(parameterModelEntry);
@@ -75,6 +78,10 @@ public class TrainingTestGenerator {
 		System.out.println("Total Test Files: "+this.getTestSourceFilePath().size());
 	}
 	
+	public List<ParameterModelEntry> getAllParameterModelEntryList() {
+		return allParameterModelEntryList;
+	}
+
 	public void genFileBasedTrainingTestDataSet() {
 		//to be safe side we clear both training and test list
 		this.testParameterModelEntryList.clear();
@@ -130,7 +137,12 @@ public class TrainingTestGenerator {
 		// TODO Auto-generated method stub
 		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH);
 		ModelEntryCollectionDriver modelEntryCollectionDriver = new ModelEntryCollectionDriver(Config.REPOSITORY_PATH);
-		modelEntryCollectionDriver.run();
+		try {
+			modelEntryCollectionDriver.run();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		System.out.println("Total Model Entry Keys: "+modelEntryCollectionDriver.getHmFileToModelEntries().keySet().size());
 		TrainingTestGenerator trainingTestGenerator = new TrainingTestGenerator(modelEntryCollectionDriver.getHmFileToParameterModelEntries());
 		trainingTestGenerator.genTrainingTestDataSet();

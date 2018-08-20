@@ -16,50 +16,45 @@ import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.binding.TypeDescriptor;
 
 public class ThisExpressionContent extends ParameterContent{
-	private String name;
 	private String classQualifier;
 	private String classQualifiedName;
 	private String thisQualifiedName;
-	private String absStringRep;
-	public ThisExpressionContent(ThisExpr thisExpr){
+	public ThisExpressionContent(ThisExpr thisExpr) {
 		super(thisExpr);
-		JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
-		name = thisExpr.toString();
-		if(thisExpr.getClassExpr().isPresent()) {
-			this.classQualifier = thisExpr.getClassExpr().get().toString();
-			
-			SymbolReference<? extends ResolvedValueDeclaration> srResolvedValueDeclaration  = jpf.solve(thisExpr.getClassExpr().get());
-			if(srResolvedValueDeclaration.isSolved()) {
-				ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
-				ResolvedType resolvedType = resolvedValueDeclaration.getType();
-				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-				this.classQualifiedName = typeDescriptor.getTypeQualifiedName();
-			}
-			this.parent = ParameterContent.get(thisExpr.getClassExpr().get());
-		}
-		else {
-			this.classQualifier = null;
-			this.classQualifiedName = null;
-			this.parent = null;
-		}
-		
-		SymbolReference<? extends ResolvedTypeDeclaration> srResolvedTypeDeclaration  = jpf.solve(thisExpr);
-		if(srResolvedTypeDeclaration.isSolved()) {
-			ResolvedTypeDeclaration resolvedTypeDeclaration = srResolvedTypeDeclaration.getCorrespondingDeclaration();
-			this.thisQualifiedName = resolvedTypeDeclaration.getQualifiedName();
-		}
-	
-		/*if(this.classQualifier!=null)
-			this.absStringRep = this.classQualifier+"."+"this";
-		else {
-			this.absStringRep = "this";		
-		}*/
 		this.absStringRep = this.getAbsStringRep(thisExpr);
 		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(thisExpr);
-	}
-	
-	public String getName() {
-		return name;
+		this.parent = null;
+
+		try {
+			JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
+			if (thisExpr.getClassExpr().isPresent()) {
+				this.classQualifier = thisExpr.getClassExpr().get().toString();
+
+				SymbolReference<? extends ResolvedValueDeclaration> srResolvedValueDeclaration = jpf
+						.solve(thisExpr.getClassExpr().get());
+				if (srResolvedValueDeclaration.isSolved()) {
+					ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration
+							.getCorrespondingDeclaration();
+					ResolvedType resolvedType = resolvedValueDeclaration.getType();
+					TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
+					this.classQualifiedName = typeDescriptor.getTypeQualifiedName();
+				}
+				this.parent = ParameterContent.get(thisExpr.getClassExpr().get());
+			} else {
+				this.classQualifier = null;
+				this.classQualifiedName = null;
+				this.parent = null;
+			}
+
+			SymbolReference<? extends ResolvedTypeDeclaration> srResolvedTypeDeclaration = jpf.solve(thisExpr);
+			if (srResolvedTypeDeclaration.isSolved()) {
+				ResolvedTypeDeclaration resolvedTypeDeclaration = srResolvedTypeDeclaration
+						.getCorrespondingDeclaration();
+				this.thisQualifiedName = resolvedTypeDeclaration.getQualifiedName();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public String getClassQualifier() {
@@ -72,6 +67,6 @@ public class ThisExpressionContent extends ParameterContent{
 		return thisQualifiedName;
 	}
 	public void print(){
-		System.out.print("THIS Name: "+this.getName()+" ClassQualifier: "+this.getClassQualifier()+" ClassQN: "+this.getClassQualifiedName()+" AbsStrRep: "+this.getAbsStringRep());
+		System.out.print("THIS Name: "+this.getRawStringRep()+" ClassQualifier: "+this.getClassQualifier()+" ClassQN: "+this.getClassQualifiedName()+" AbsStrRep: "+this.getAbsStringRep());
 	}
 }

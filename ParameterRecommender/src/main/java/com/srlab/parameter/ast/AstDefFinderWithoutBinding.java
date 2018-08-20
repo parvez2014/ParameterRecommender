@@ -17,6 +17,7 @@ import java.util.List;
  */
 
 import com.github.javaparser.Position;
+import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
@@ -44,19 +45,19 @@ public class AstDefFinderWithoutBinding extends VoidVisitorAdapter<Void> {
 
 	private final HashSet<String> varnameSet; // variable name
 	private Position position;	
-	private final MethodDeclaration methodDeclaration; // method declaration containing the method call
+	private final CallableDeclaration<?> callableDeclaration; // method declaration containing the method call
 	private final JavaParserFacade javaParserFacade;
 	
 	public DefinitionType getDefinitionType() {
 		return definitionType;
 	}
 
-	public AstDefFinderWithoutBinding(final HashSet<String> _varnameSet, Position _position, MethodDeclaration _methodDeclaration,
+	public AstDefFinderWithoutBinding(final HashSet<String> _varnameSet, Position _position, CallableDeclaration<?> _callableDeclaration,
 			JavaParserFacade _javaParserFacade) {
 		this.varnameSet = _varnameSet;
 		this.position = _position; // position of the node that triggers this AstdefFinder
 		this.javaParserFacade = _javaParserFacade;
-		this.methodDeclaration = _methodDeclaration;
+		this.callableDeclaration = _callableDeclaration;
 		this.methodCalls = new HashSet();
 
 		this.definingMethodCall = null;
@@ -64,7 +65,7 @@ public class AstDefFinderWithoutBinding extends VoidVisitorAdapter<Void> {
 		this.definitionType = DefinitionType.UNKNOWN;
 		this.hmMethodCallPosition = new HashMap();
 		//System.out.print("MethodDeclaration: "+methodDeclaration);
-		this.methodDeclaration.accept(this, null);
+		this.callableDeclaration.accept(this, null);
 	}
 
 	public String getDefiningMethodCall() {
@@ -79,8 +80,8 @@ public class AstDefFinderWithoutBinding extends VoidVisitorAdapter<Void> {
 		return position;
 	}
 
-	public MethodDeclaration getMethodDeclaration() {
-		return methodDeclaration;
+	public CallableDeclaration<?> getMethodDeclaration() {
+		return callableDeclaration;
 	}
 
 	public JavaParserFacade getJavaParserFacade() {

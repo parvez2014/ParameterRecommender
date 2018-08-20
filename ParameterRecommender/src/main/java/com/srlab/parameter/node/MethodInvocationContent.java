@@ -15,7 +15,6 @@ import com.srlab.parameter.binding.TypeResolver;
 
 public class MethodInvocationContent extends ParameterContent{
 	
-	private String name;
 	private String methodName;
 	private String receiver;
 	private String receiverTypeQualifiedName;
@@ -23,12 +22,11 @@ public class MethodInvocationContent extends ParameterContent{
 	
 	public MethodInvocationContent(MethodCallExpr mi){
 		super(mi);
-		this.name = mi.toString();
 		this.methodName = mi.getName().getIdentifier();
 		this.absStringRep = this.getAbsStringRep(mi);
 		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(mi);
 		
-
+		this.parent = null;
 		this.receiver = null;
 		this.receiverTypeQualifiedName = null;
 		
@@ -46,10 +44,6 @@ public class MethodInvocationContent extends ParameterContent{
 			}*/
 			this.parent = ParameterContent.get(mi.getScope().get());
 		}
-	}
-
-	public String getName() {
-		return name;
 	}
 
 	public String getMethodName() {
@@ -70,7 +64,7 @@ public class MethodInvocationContent extends ParameterContent{
 
 	@Override
 	public String toString() {
-		return "MethodInvocationContent [name=" + name + ", methodName=" + methodName + ", receiver=" + receiver
+		return "MethodInvocationContent [name=" + this.getRawStringRep() + ", methodName=" + methodName + ", receiver=" + receiver
 				+ ", receiverTypeQualifiedName=" + receiverTypeQualifiedName + ", absStringRep=" + absStringRep + "]";
 	}
 	

@@ -18,7 +18,6 @@ import com.srlab.parameter.binding.TypeDescriptor;
 
 public class QualifiedNameContent extends ParameterContent {
 
-	private String name;
 	private String identifier;
 	private String typeQualifiedName;
 	private String scope;
@@ -26,7 +25,6 @@ public class QualifiedNameContent extends ParameterContent {
 	
 	public QualifiedNameContent(FieldAccessExpr fieldAccessExpr) {
 		super(fieldAccessExpr);
-		this.name = fieldAccessExpr.toString();
 		this.scope = null;
 		this.scopeTypeQualifiedName = null;
 		//System.out.println("FieldAccessScope: "+fieldAccessExpr.getScope()+" "+(fieldAccessExpr.getScope() instanceof ClassExpr));
@@ -61,10 +59,6 @@ public class QualifiedNameContent extends ParameterContent {
 		}
 	}
 
-	public String getName() {
-		return name;
-	}
-
 	public String getIdentifier() {
 		return identifier;
 	}
@@ -81,7 +75,7 @@ public class QualifiedNameContent extends ParameterContent {
 		return scopeTypeQualifiedName;
 	}
 	public void print() {
-		System.out.println("QualifiedNameContent [name=" + name + ", identifier=" + identifier + ", typeQualifiedName="
+		System.out.println("QualifiedNameContent [raw=" + this.getRawStringRep() + ", identifier=" + identifier + ", typeQualifiedName="
 				+ typeQualifiedName + ", scope=" + scope + ", scopeTypeQualifiedName=" + scopeTypeQualifiedName
 				+ ", absStringRep=" + absStringRep + "]");
 	}

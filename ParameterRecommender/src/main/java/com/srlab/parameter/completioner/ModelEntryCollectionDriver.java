@@ -85,6 +85,7 @@ public class ModelEntryCollectionDriver implements Serializable {
 									sbParameterAbsStringRepWithLiteral.append(parameterContent.getAbsStringRepWithLiteral());
 									sbParameterAbsStringRepWithLiteral.append(" ");
 								}
+								//System.out.println("MethodCallEntity: "+modelEntry.getMethodCallEntity());
 								bw.write("MethodCallExpression: "+methodCallExprVisitor.getHmModelEntryToMethodCallExpr().get(modelEntry));
 								bw.newLine();
 								bw.write("MethodName: "+modelEntry.getMethodCallEntity().getMethodDeclarationEntity().getName());

@@ -33,6 +33,7 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.MethodReferenceExpr;
 import com.github.javaparser.ast.expr.Name;
 import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.NullLiteralExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
@@ -170,10 +171,11 @@ public class ParameterExpressionCategorizer {
 			else if(exp instanceof StringLiteralExpr){
 				return "StringLiteralExpr";
 			}
-			else if(exp instanceof CharLiteralExpr){
-				return "CharLiteralExpr";
+			else if(exp instanceof NullLiteralExpr){
+				return "NullLiteralExpr";
 			}
 			else {
+				System.out.println("Expression:::::: "+exp);
 				throw new RuntimeException("Cannot find the expression type of this argument: "+exp);
 			}
 		}

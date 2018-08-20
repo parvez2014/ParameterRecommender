@@ -13,17 +13,16 @@ import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.binding.TypeDescriptor;
 
 public class ClassInstanceCreationContent extends ParameterContent{
-	private String name;
 	private String scope;
 	private String scopeTypeQualifiedName;
 	private String typeQualifiedName;
 	public ClassInstanceCreationContent(ObjectCreationExpr objectCreationExpression){
 		super(objectCreationExpression);
 		this.typeQualifiedName = null;
-		this.name = objectCreationExpression.toString();
-		this.absStringRep = this.getAbsStringRepWithLiteral(objectCreationExpression);	
-		
-		ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpression.getType());
+		this.absStringRep = this.getAbsStringRep(objectCreationExpression);
+		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(objectCreationExpression);
+	
+		/*ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpression.getType());
 		TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 		this.typeQualifiedName = typeDescriptor.getTypeQualifiedName();
 		
@@ -44,15 +43,10 @@ public class ClassInstanceCreationContent extends ParameterContent{
 			this.parent = null;
 			this.scope = null;
 			this.scopeTypeQualifiedName =null;
-		}
-		this.absStringRep = this.getAbsStringRep(objectCreationExpression);
-		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(objectCreationExpression);
+		}*/
 	}
 	
-	public String getName() {
-		return name;
-	}
-
+	
 	public String getScope() {
 		return scope;
 	}
@@ -66,7 +60,7 @@ public class ClassInstanceCreationContent extends ParameterContent{
 	}
 
 	public void print(){
-		System.out.print("ClassInstanceCreationContent [name=" + name + ", scope=" + scope + ", scopeTypeQualifiedName="
+		System.out.print("ClassInstanceCreationContent [name=" + this.getRawStringRep() + ", scope=" + scope + ", scopeTypeQualifiedName="
 				+ scopeTypeQualifiedName + ", typeQualifiedName=" + typeQualifiedName + ", absStringRep=" + absStringRep
 				+ "]");
 	}

@@ -23,6 +23,8 @@ import com.github.javaparser.JavaToken;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.CallableDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.BooleanLiteralExpr;
@@ -156,13 +158,16 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 		return hmParaMeterModelEntryToMethodCallExpr;
 	}
 
-	public MethodDeclaration getMethodDeclarationContainer(Node node) {
+	public CallableDeclaration<?> getMethodDeclarationContainer(Node node) {
 		Optional<Node> parent = node.getParentNode();
-		while(parent.isPresent() && ((parent.get() instanceof MethodDeclaration))==false){
+		while(parent.isPresent() && ((parent.get() instanceof MethodDeclaration))==false && ((parent.get() instanceof ConstructorDeclaration))==false){
 			parent = parent.get().getParentNode();
 		}
 		if(parent.isPresent() && ((parent.get())instanceof MethodDeclaration)) {
 			return (MethodDeclaration)parent.get();
+		}
+		else if(parent.isPresent() && ((parent.get())instanceof ConstructorDeclaration)) {
+			return (ConstructorDeclaration)parent.get();
 		}
 		else return null;
 	}
@@ -527,9 +532,11 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 							//determine Receiver Type
 							Expression receiverExpression = m.getScope().get();
 							String receiverType = TypeResolver.resolve(m.getScope().get());
+							if(receiverType==null) throw new RuntimeException("ReceiverType cannot be null");
 							
-							MethodDeclaration methodDeclaration = this.getMethodDeclarationContainer(m);	
-							if(methodDeclaration!=null && methodDeclaration.getBegin().isPresent() && m.getBegin().isPresent()) {
+							CallableDeclaration<?> callableDeclaration = this.getMethodDeclarationContainer(m);	
+							if(callableDeclaration!=null && callableDeclaration.getBegin().isPresent() && m.getBegin().isPresent()) 
+							{
 								//System.out.println("Method Call Expr: "+m+ "Arguments: "+m.getArguments().size());
 								
 								//System.out.println("Method Call Expr: "+m+" File: "+this.getFilePath()+" Line: "+m.getBegin().get().line);
@@ -546,7 +553,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 								
 								
 								String source = FileUtils.readFileToString(new File(this.filePath));
-								String text = this.collectSourceString(source,methodDeclaration.getBegin().get(),m.getBegin().get());
+								String text = this.collectSourceString(source,callableDeclaration.getBegin().get(),m.getBegin().get());
 								
 								List<Token> tokenList = this.tokenize(text);
 								
@@ -575,8 +582,14 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 								
 								String neighborList   = this.calcNeighbor(tokenList,tokenList.size()-1);
 								String lineContent    = this.getLineContent(tokenList, tokenList.size()-1);
-								
-								MethodCallEntity methodCallEntity = MethodCallEntity.get(m, resolvedMethodDeclaration, JSSConfigurator.getInstance().getJpf());
+								MethodCallEntity methodCallEntity = null;
+								boolean errorInresolvingMethodCallBinding = false;
+								//try {
+								methodCallEntity = MethodCallEntity.get(m, resolvedMethodDeclaration, JSSConfigurator.getInstance().getJpf());
+								if(methodCallEntity==null) throw new RuntimeException("MethodCallEntity is null");
+								//}catch(Exception e){
+								//	errorInresolvingMethodCallBinding = true;
+								//}
 								List<ParameterContent> parameterContentList = new ArrayList();
 								
 								if(m.getArguments().size()>0) {
@@ -624,8 +637,10 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 											parameterContentList.add(parameterContent);
 										}
 										else if(expression instanceof ObjectCreationExpr) {
+											//System.out.println("Object Creation Expression: "+expression);
 											ParameterContent parameterContent = new ClassInstanceCreationContent((ObjectCreationExpr)expression);
 											parameterContentList.add(parameterContent);
+											//System.out.println("parameterConten: "+parameterContent.getAbsStringRep());
 										}
 										else if(expression instanceof CastExpr) {
 											ParameterContent parameterContent = new CastExpressionContent((CastExpr)expression);
@@ -650,7 +665,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 								String methodCalledOnReceiverOrArgument = "";
 								HashSet<String> receiverOrArgumentVarnames= ReceiverOrArgumentMethodCallCollector.collectIdentifiers(m);
 								if(receiverOrArgumentVarnames.size()>0) {
-									AstDefFinderWithoutBinding astDefFinderWithoutBinding = new AstDefFinderWithoutBinding(receiverOrArgumentVarnames,m.getName().getBegin().get(), methodDeclaration, JSSConfigurator.getInstance().getJpf());
+									AstDefFinderWithoutBinding astDefFinderWithoutBinding = new AstDefFinderWithoutBinding(receiverOrArgumentVarnames,m.getName().getBegin().get(), callableDeclaration, JSSConfigurator.getInstance().getJpf());
 									StringBuilder sbReceiverArgumentMethodCalls = new StringBuilder();
 									for(String methodCall:astDefFinderWithoutBinding.getMethodCalls()) {
 										sbReceiverArgumentMethodCalls.append(methodCall);

@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.github.javaparser.Position;
 import com.github.javaparser.ast.AccessSpecifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.BodyDeclaration;
@@ -84,8 +85,8 @@ public class SimpleNameCollector extends VoidVisitorAdapter<Void> {
 			TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 
 			SourcePosition sourcePosition = null;
-			if (parameter.getBegin().isPresent() && parameter.getBegin().get().isBefore(origin)) {
-				sourcePosition = new SourcePosition(parameter.getBegin().get());
+			if (parameter.getBegin().isPresent() && parameter.getBegin().get().isBefore(new Position(origin.line,origin.column))) {
+				sourcePosition = new SourcePosition(parameter.getBegin().get().line,parameter.getBegin().get().column);
 				VariableEntity variableEntity = new VariableEntity(typeDescriptor.getTypeQualifiedName(),
 						parameter.getName().getIdentifier(), VariableEntityCategory.PARAMETER,
 						VariableLocationCategory.PARAMETER_DECLARATION, sourcePosition);
@@ -125,7 +126,7 @@ public class SimpleNameCollector extends VoidVisitorAdapter<Void> {
 						TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 
 						if (vd.getBegin().isPresent()) {
-							sourcePosition = new SourcePosition(vd.getBegin().get());
+							sourcePosition = new SourcePosition(vd.getBegin().get().line,vd.getBegin().get().column);
 						}
 						VariableEntity variableEntity = new VariableEntity(typeDescriptor.getTypeQualifiedName(),
 								identifier, VariableEntityCategory.FIELD, VariableLocationCategory.FIELD_DECLARATION,
@@ -193,8 +194,8 @@ public class SimpleNameCollector extends VoidVisitorAdapter<Void> {
 		ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().convertToUsage(variableDeclarator.getType());
 		TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
 
-		if (variableDeclarator.getBegin().isPresent() && variableDeclarator.getBegin().get().isBefore(origin)) {
-			sourcePosition = new SourcePosition(variableDeclarator.getBegin().get());
+		if (variableDeclarator.getBegin().isPresent() && variableDeclarator.getBegin().get().isBefore(new Position(origin.line,origin.column))) {
+			sourcePosition = new SourcePosition(variableDeclarator.getBegin().get().line,variableDeclarator.getBegin().get().column);
 			VariableEntity variableEntity = new VariableEntity(typeDescriptor.getTypeQualifiedName(), identifier,
 					VariableEntityCategory.LOCAL, VariableLocationCategory.LOCAL_DECLARATION, sourcePosition);
 			this.localVariableDeclarationEntities.add(variableEntity);
@@ -210,8 +211,8 @@ public class SimpleNameCollector extends VoidVisitorAdapter<Void> {
 
 		SourcePosition sourcePosition = null;
 		SimpleName simpleName = n.getName();
-		if (simpleName.getBegin().isPresent() && simpleName.getBegin().get().isBefore(origin)) {
-			sourcePosition = new SourcePosition(simpleName.getBegin().get());
+		if (simpleName.getBegin().isPresent() && simpleName.getBegin().get().isBefore(new Position(origin.line,origin.column))) {
+			sourcePosition = new SourcePosition(simpleName.getBegin().get().line, simpleName.getBegin().get().column);
 			SymbolReference<? extends ResolvedValueDeclaration> srResolvedvalueDeclaration = JSSConfigurator
 					.getInstance().getJpf().solve(simpleName);
 			if (srResolvedvalueDeclaration.isSolved()) {
