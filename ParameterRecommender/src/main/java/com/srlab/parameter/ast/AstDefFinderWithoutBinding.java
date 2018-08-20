@@ -313,6 +313,7 @@ public class AstDefFinderWithoutBinding extends VoidVisitorAdapter<Void> {
 	}
 
 	public void visit(VariableDeclarationExpr node, Void arg) {
+		super.visit(node, arg);
 		for (VariableDeclarator v : node.getVariables()) {
 			evaluateVariableDeclarationFragment(v);
 		}
