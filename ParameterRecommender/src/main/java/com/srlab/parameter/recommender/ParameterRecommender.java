@@ -124,12 +124,12 @@ public class ParameterRecommender {
 											sourcePosition.line + ":" + sourcePosition.column,
 											parameterModelEntry.getParameterPosition());
 									if (testModelEntry.getParameterContent() instanceof NullLiteralContent
-											//|| testModelEntry.getParameterContent() instanceof StringLiteralContent
-											//|| testModelEntry.getParameterContent() instanceof CharLiteralContent
-											//|| testModelEntry.getParameterContent() instanceof NumberLiteralContent
-											//|| testModelEntry.getParameterContent() instanceof BooleanLiteralContent
-											//|| parameterModelEntry.getParameterContent() instanceof ThisExpressionContent
-											//parameterModelEntry.getParameterContent() instanceof NameExprContent
+											|| testModelEntry.getParameterContent() instanceof StringLiteralContent
+											|| testModelEntry.getParameterContent() instanceof CharLiteralContent
+											|| testModelEntry.getParameterContent() instanceof NumberLiteralContent
+											|| testModelEntry.getParameterContent() instanceof BooleanLiteralContent
+											|| parameterModelEntry.getParameterContent() instanceof ThisExpressionContent
+											||parameterModelEntry.getParameterContent() instanceof NameExprContent
 											
 								//|| parameterModelEntry.getParameterContent() instanceof QualifiedNameContent
 								//|| parameterModelEntry.getParameterContent() instanceof ClassInstanceCreationContent

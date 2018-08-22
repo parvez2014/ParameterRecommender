@@ -11,7 +11,6 @@ public class StringLiteralContent extends ParameterContent{
 	
 public StringLiteralContent(StringLiteralExpr sl){
 		super(sl);
-		this.rawStringRep = sl.toString();
 		this.absStringRep = this.getAbsStringRep(sl);
 		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(sl);
 		this.parent = null;

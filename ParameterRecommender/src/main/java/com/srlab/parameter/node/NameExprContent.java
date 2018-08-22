@@ -21,18 +21,15 @@ import com.srlab.parameter.binding.TypeResolver;
 
 public class NameExprContent extends ParameterContent{
 
-	String name;     //the qualified name
 	String identifier;
 	String typeQualifiedName; //qualifiedName of the type
 	public NameExprContent(NameExpr nameExpr){
 		super(nameExpr);
-		this.name=null;
 		this.identifier=null;
 		this.typeQualifiedName=null;
 		this.absStringRep=null;
 		
 		SimpleName sn = nameExpr.asNameExpr().getName();
-		this.name = sn.toString();
 		this.identifier = sn.getIdentifier();
 		this.absStringRep = this.getAbsStringRep(nameExpr);
 		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(nameExpr);
@@ -55,10 +52,6 @@ public class NameExprContent extends ParameterContent{
 		}*/
 	}
 	
-	public String getName() {
-		return name;
-	}
-	
 	public String getIdentifier() {
 		return identifier;
 	}
@@ -68,6 +61,6 @@ public class NameExprContent extends ParameterContent{
 	}
 
 	public void print(){
-		System.out.println("Name: "+this.getName()+" Identifier: "+this.getIdentifier()+" AbsStrRep: "+this.absStringRep);
+		System.out.println("Name: "+this.getRawStringRep()+" Identifier: "+this.getIdentifier()+" AbsStrRep: "+this.absStringRep);
 	}
 }

@@ -291,9 +291,10 @@ public class ParameterContent implements Serializable{
 		else if(expression instanceof ObjectCreationExpr) {
 			try {
 			ObjectCreationExpr objectCreationExpr = (ObjectCreationExpr)expression;
-			//System.out.println("Object Creation Expression: "+objectCreationExpr.getType());
 			SymbolReference<ResolvedConstructorDeclaration> srResolvedConstructorDeclaration = JSSConfigurator.getInstance().getJpf().solve(objectCreationExpr);
 			return "new " + srResolvedConstructorDeclaration.getCorrespondingDeclaration().getClassName()+"("+")";
+			
+			//System.out.println("Object Creation Expression: "+objectCreationExpr.getType());
 			/*if(objectCreationExpr.getScope().isPresent()==false) {
 				ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpr.getType());
 				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
