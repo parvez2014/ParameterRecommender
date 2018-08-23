@@ -41,14 +41,17 @@ public class JSSConfigurator {
 		this.jpf = null;
 	}
 	
-	public void init(String rootPath, String dependencyPath) {
+	public void init(String rootPath, String dependencyPath, boolean load_jars_in_source) {
 		
 		//Step-1: Create a combined type solver
 		this.combinedTypeSolver = new CombinedTypeSolver();		
+		
+		//step:1.1: initialize parser configuration
 		ParserConfiguration parserConfiguration = new ParserConfiguration();
 		parserConfiguration.setStoreTokens(false);
 		parserConfiguration.setAttributeComments(false);
 	
+		//step:1.2: initialize source roots
 		Path path = Paths.get(rootPath);
 		ProjectRoot projectRoot = 
 			    new CollectionContext(new SymbolSolverCollectionStrategy())
@@ -56,7 +59,7 @@ public class JSSConfigurator {
 		System.out.println("Source Roots: "+projectRoot.getSourceRoots().size());	
 		
 		//step-2: add java parser type solver
-			for(int i=0;i<projectRoot.getSourceRoots().size();i++) {
+		for(int i=0;i<projectRoot.getSourceRoots().size();i++) {
 			SourceRoot sourceroot = projectRoot.getSourceRoots().get(i);
 		
 			System.out.println("["+i+"] "+sourceroot.getRoot());	
@@ -67,18 +70,19 @@ public class JSSConfigurator {
 		combinedTypeSolver.add(new ReflectionTypeSolver()); 
 		
 		//step-4: collect all jar files in the source folder
-		List<File> jarFileList = this.collectJarFiles(new File(rootPath));
-		System.out.println("Collected Source Jar Files: "+jarFileList.size());
-		for(File jarFile:jarFileList) {
-			try {
-				System.out.println("Jar: "+jarFile.getAbsolutePath());
-				combinedTypeSolver.add(new JarTypeSolver(jarFile.getAbsolutePath()));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		if(load_jars_in_source) {
+			List<File> jarFileList = this.collectJarFiles(new File(rootPath));
+			System.out.println("Collected Source Jar Files: "+jarFileList.size());
+			for(File jarFile:jarFileList) {
+				try {
+					System.out.println("Jar: "+jarFile.getAbsolutePath());
+					combinedTypeSolver.add(new JarTypeSolver(jarFile.getAbsolutePath()));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
-		
 		//step-5: collect jar files from dependency folder, if any
 		List<File> dependencyJarFileList = this.collectJarFiles(new File(dependencyPath));
 		System.out.println("Collected Dependency Jar Files: "+dependencyJarFileList.size());
@@ -130,6 +134,6 @@ public class JSSConfigurator {
 	}
 
 	public static void main(String args[]) {
-		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH);
+		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH,true);
 	}
 }

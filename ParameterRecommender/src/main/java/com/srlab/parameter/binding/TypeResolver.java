@@ -31,21 +31,16 @@ public class TypeResolver {
 	public static String resolve(Expression expression) {
 		
 		if(expression instanceof ArrayAccessExpr) {
-			//System.out.println("Type of Array Access Expr: "+JSSConfigurator.getInstance().getJpf().getType(expression.asArrayAccessExpr()));
-			//System.out.println("ArrayAccessExpr: "+expression+"  Name: "+expression.asArrayAccessExpr().getName()+"  Index:"+expression.asArrayAccessExpr().getIndex());
 			return TypeResolver.resolve(((ArrayAccessExpr) expression).getName());
 		}
 		else if(expression instanceof ArrayCreationExpr) {
 			ArrayCreationExpr arrayCreationExpr = (ArrayCreationExpr)expression;
 			ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().convert(arrayCreationExpr.createdType(),arrayCreationExpr);
-			TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-			return typeDescriptor.getTypeQualifiedName();
-			//System.out.println("ArrayAccessExpr: "+expression+" Resolved Type Type: "+typeDescriptor.getTypeQualifiedName());
+			return TypeDescriptor.resolveTypeQualifiedName(resolvedType);
 		}
 		else if(expression instanceof ArrayInitializerExpr) {
-			ResolvedType rt = JSSConfigurator.getInstance().getJpf().getType(expression.asArrayInitializerExpr());
-			TypeDescriptor typeDescriptor = new TypeDescriptor(rt);
-			return typeDescriptor.getTypeQualifiedName();
+			//you need to identify the list of array initializer expression and resolve them separately
+			throw new RuntimeException("cannot resolve binding of array initializer expression: "+expression);
 		}
 		else if(expression instanceof FieldAccessExpr) {
 			SymbolReference<? extends ResolvedFieldDeclaration> sr = JSSConfigurator.getInstance().getJpf().solve(expression.asFieldAccessExpr());
@@ -60,16 +55,14 @@ public class TypeResolver {
 			ResolvedType resolvedType = resolvedValueDeclaration.getType();
 			return TypeDescriptor.resolveTypeQualifiedName(resolvedType);
 		}
-		else if(expression instanceof MethodCallExpr) {
+		else if(expression instanceof MethodCallExpr) { //we resolved the return type of the method. It can be void too
 			MethodCallExpr methodCallExpr = expression.asMethodCallExpr();
 			SymbolReference<ResolvedMethodDeclaration>  sr = JSSConfigurator.getInstance().getJpf().solve(methodCallExpr);
 			ResolvedMethodDeclaration resolvedMethodDeclaration = sr.getCorrespondingDeclaration();
-			TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedMethodDeclaration.getReturnType());
-			return typeDescriptor.getTypeQualifiedName();
+			return TypeDescriptor.resolveTypeQualifiedName(resolvedMethodDeclaration.getReturnType());
 		}
 		else if(expression instanceof NameExpr) {
-			//System.out.println("Calling Name Expr: "+expression.asNameExpr());
-			//System.out.println("Resolved Type: "+JSSConfigurator.getInstance().getJpf().getType(expression.asNameExpr()));
+			//a name can be i or can be BorderLayout.center. Second one is not supportred so we need to process additional steps 
 			NameExpr nameExpr = expression.asNameExpr();
 			Optional<Node> parent = nameExpr.getParentNode();
 			
@@ -87,6 +80,9 @@ public class TypeResolver {
 					ResolvedReferenceTypeDeclaration resolvedReferenceTypeDeclaration = sr.getCorrespondingDeclaration().declaringType();
 					return resolvedReferenceTypeDeclaration.getQualifiedName();
 				}
+				else {
+					throw new RuntimeException("cannot resolve the name expression: " + expression);
+				}
 			}
 			else {
 				ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
@@ -98,9 +94,11 @@ public class TypeResolver {
 			SuperExpr superExpr = expression.asSuperExpr();
 			TypeDescriptor typeDescriptor = new TypeDescriptor(JSSConfigurator.getInstance().getJpf().getType(superExpr));
 			return typeDescriptor.getTypeQualifiedName();
-			//System.out.println("Super Expr: "+superExpr+JSSConfigurator.getInstance().getJpf().getType(superExpr));
 		}
 		else if(expression instanceof ThisExpr) {
+			//An occurrence of the "this" keyword.
+			//World.this.greet() is a MethodCallExpr of method name greet, and scope "World.super" which is a ThisExpr with classExpr "World".
+			//this.name is a FieldAccessExpr of field greet, and a ThisExpr as its scope. The ThisExpr has no classExpr.
 			SymbolReference<? extends ResolvedTypeDeclaration> sr = JSSConfigurator.getInstance().getJpf().solve(expression.asThisExpr());
 			ResolvedTypeDeclaration resolvedTypeDeclaration = sr.getCorrespondingDeclaration();
 			return resolvedTypeDeclaration.getQualifiedName();
@@ -117,17 +115,9 @@ public class TypeResolver {
 			}
 		}
 		else {
+			//any other thing we are trying to resolve as is and it may throw exception
 			TypeDescriptor typeDescriptor = new TypeDescriptor(JSSConfigurator.getInstance().getJpf().getType(expression));
 			return typeDescriptor.getTypeQualifiedName();
-			
-			/*SymbolReference<? extends ResolvedValueDeclaration> sr = JSSConfigurator.getInstance().getJpf().solve(expression);
-			ResolvedValueDeclaration resolvedValueDeclaration = sr.getCorrespondingDeclaration();
-			TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedValueDeclaration.getType());
-			return typeDescriptor.getTypeQualifiedName();*/
 		}
-		//else {
-		//	throw new RuntimeException("Cannot Resolve Expression Type");
-		//}
-		return null;
 	}
 }
