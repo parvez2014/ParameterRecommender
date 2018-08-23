@@ -15,48 +15,51 @@ import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.binding.TypeDescriptor;
+import com.srlab.parameter.binding.TypeResolver;
 
 public class QualifiedNameContent extends ParameterContent {
 
 	private String identifier;
 	private String typeQualifiedName;
 	private String scope;
-	private String scopeTypeQualifiedName;
-	
+
 	public QualifiedNameContent(FieldAccessExpr fieldAccessExpr) {
 		super(fieldAccessExpr);
-		this.scope = null;
-		this.scopeTypeQualifiedName = null;
-		//System.out.println("FieldAccessScope: "+fieldAccessExpr.getScope()+" "+(fieldAccessExpr.getScope() instanceof ClassExpr));
-		
 		this.identifier = fieldAccessExpr.getName().getIdentifier();
-		SymbolReference<? extends ResolvedValueDeclaration> srResolvedValueDeclaration = JSSConfigurator.getInstance().getJpf().solve(fieldAccessExpr.getName());
-		ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
-		ResolvedType resolvedType = resolvedValueDeclaration.getType();
-		TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-		this.typeQualifiedName = typeDescriptor.getTypeQualifiedName();
+		this.scope = fieldAccessExpr.getScope().toString();
+
 		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(fieldAccessExpr);
 		this.absStringRep = this.getAbsStringRep(fieldAccessExpr);
-		//System.out.println("Abstract String Rep in QualifiedNameContent: "+fieldAccessExpr.getScope());
-		
-		JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
-		srResolvedValueDeclaration = jpf.solve(fieldAccessExpr.getScope().asNameExpr());
-		if (srResolvedValueDeclaration.isSolved()) {
-			resolvedValueDeclaration = srResolvedValueDeclaration
-					.getCorrespondingDeclaration();
-			resolvedType = resolvedValueDeclaration.getType();
-			typeDescriptor = new TypeDescriptor(resolvedType);
-			this.scope = fieldAccessExpr.getScope().toString();
-			this.scopeTypeQualifiedName = typeDescriptor.getTypeQualifiedName();
-			System.out.println("TypeDescriptor is called...");
-			this.parent = ParameterContent.get(fieldAccessExpr.getScope());
-		}else {
-			this.scopeTypeQualifiedName = fieldAccessExpr.getScope().toString();
-			//System.out.println("FieldAccessScope: ::::"+"TypeExpr: "+(fieldAccessExpr.getScope() instanceof TypeExpr));
-			//System.out.println("FieldAccessScope: ::::"+"NameExpr: "+(fieldAccessExpr.getScope() instanceof NameExpr));
-			//System.out.println("FieldAccessScope: ::::"+"ClassExpr: "+(fieldAccessExpr.getScope() instanceof ClassExpr));
-			NameExpr nameExpr = fieldAccessExpr.getScope().asNameExpr();
-		}
+
+		this.typeQualifiedName = TypeResolver.resolve(fieldAccessExpr);
+		this.parent = ParameterContent.get(fieldAccessExpr.getScope());
+
+		/*
+		 * SymbolReference<? extends ResolvedValueDeclaration>
+		 * srResolvedValueDeclaration =
+		 * JSSConfigurator.getInstance().getJpf().solve(fieldAccessExpr.getName());
+		 * ResolvedValueDeclaration resolvedValueDeclaration =
+		 * srResolvedValueDeclaration.getCorrespondingDeclaration(); ResolvedType
+		 * resolvedType = resolvedValueDeclaration.getType(); TypeDescriptor
+		 * typeDescriptor = new TypeDescriptor(resolvedType); this.typeQualifiedName =
+		 * typeDescriptor.getTypeQualifiedName();
+		 * //System.out.println("Abstract String Rep in QualifiedNameContent: "
+		 * +fieldAccessExpr.getScope());
+		 * 
+		 * JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
+		 * srResolvedValueDeclaration =
+		 * jpf.solve(fieldAccessExpr.getScope().asNameExpr()); if
+		 * (srResolvedValueDeclaration.isSolved()) { resolvedValueDeclaration =
+		 * srResolvedValueDeclaration .getCorrespondingDeclaration(); resolvedType =
+		 * resolvedValueDeclaration.getType(); typeDescriptor = new
+		 * TypeDescriptor(resolvedType); this.scope =
+		 * fieldAccessExpr.getScope().toString(); this.scopeTypeQualifiedName =
+		 * typeDescriptor.getTypeQualifiedName();
+		 * System.out.println("TypeDescriptor is called..."); this.parent =
+		 * ParameterContent.get(fieldAccessExpr.getScope()); }else {
+		 * this.scopeTypeQualifiedName = fieldAccessExpr.getScope().toString(); NameExpr
+		 * nameExpr = fieldAccessExpr.getScope().asNameExpr(); }
+		 */
 	}
 
 	public String getIdentifier() {
@@ -71,12 +74,11 @@ public class QualifiedNameContent extends ParameterContent {
 		return scope;
 	}
 
-	public String getScopeTypeQualifiedName() {
-		return scopeTypeQualifiedName;
+	@Override
+	public String toString() {
+		return "QualifiedNameContent [identifier=" + identifier + ", typeQualifiedName=" + typeQualifiedName
+				+ ", scope=" + scope + ", rawStringRep=" + rawStringRep + ", parent=" + parent + ", absStringRep="
+				+ absStringRep + ", absStringRepWithLiteral=" + absStringRepWithLiteral + "]";
 	}
-	public void print() {
-		System.out.println("QualifiedNameContent [raw=" + this.getRawStringRep() + ", identifier=" + identifier + ", typeQualifiedName="
-				+ typeQualifiedName + ", scope=" + scope + ", scopeTypeQualifiedName=" + scopeTypeQualifiedName
-				+ ", absStringRep=" + absStringRep + "]");
-	}
+
 }

@@ -10,7 +10,6 @@ public class NullLiteralContent extends ParameterContent{
 	
 	public NullLiteralContent(NullLiteralExpr nl){
 		super(nl);
-		this.rawStringRep = nl.toString();
 		this.absStringRep = this.getAbsStringRep(nl);
 		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(nl);
 		this.parent = null;

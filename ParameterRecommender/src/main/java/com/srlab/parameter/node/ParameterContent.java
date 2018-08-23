@@ -28,6 +28,7 @@ import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.binding.TypeDescriptor;
+import com.srlab.parameter.binding.TypeResolver;
 import com.srlab.parameter.category.ParameterExpressionCategorizer;
 
 public class ParameterContent implements Serializable{
@@ -37,7 +38,11 @@ public class ParameterContent implements Serializable{
 	protected String absStringRep; //this one does not transform/encode literal values
 	protected String absStringRepWithLiteral; //this one encode literal values
 	
-
+	public ParameterContent(Expression expression) {
+		this.rawStringRep = expression.toString();
+		this.parameterExpressionType = ParameterExpressionCategorizer.getParameterExpressionType(expression);
+	}
+	
 	public void print() {
 		if(this instanceof StringLiteralContent) {
 			 ((StringLiteralContent)this).print();
@@ -90,10 +95,6 @@ public class ParameterContent implements Serializable{
 		return absStringRepWithLiteral;
 	}
 
-	public ParameterContent(Expression expression) {
-		this.rawStringRep = expression.toString();
-		this.parameterExpressionType = ParameterExpressionCategorizer.getParameterExpressionType(expression);
-	}
 	public static ParameterContent get(Expression expression) {
 		if (expression instanceof StringLiteralExpr) {
 			return new StringLiteralContent((StringLiteralExpr)expression);
@@ -133,7 +134,7 @@ public class ParameterContent implements Serializable{
 		else if(expression instanceof ThisExpr) {
 			return new ThisExpressionContent((ThisExpr)expression);
 		}else {
-			throw new RuntimeException("Unknown Expression Exception Type");
+			return new UnknownContent(expression);
 		}
 	}
 
@@ -156,21 +157,14 @@ public class ParameterContent implements Serializable{
 		else if(expression instanceof IntegerLiteralExpr) {
 			return "Number";	
 		}
+	
+		else if(expression instanceof CharLiteralExpr) {
+			return "Char";
+		}
 		else if(expression instanceof NameExpr) {
 			SimpleName sn = expression.asNameExpr().getName(); 
-			JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
-			SymbolReference<? extends ResolvedValueDeclaration> srResolvedValueDeclaration  = jpf.solve(sn);
-			if(srResolvedValueDeclaration.isSolved()) {
-				ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
-				ResolvedType resolvedType = resolvedValueDeclaration.getType();
-				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-				return "SN"+":"+typeDescriptor.getTypeQualifiedName();
-			}
-			else if(Character.isUpperCase(sn.getIdentifier().charAt(0))){
-				return sn.getIdentifier();
-			}else {
-				throw new RuntimeException("Error in parsing NameExpr: "+expression);
-			}
+			String typeQualifiedName = TypeResolver.resolve(expression);
+			return "SN:"+typeQualifiedName;
 		}
 		else if(expression instanceof CastExpr) {
 			CastExpr ce = (CastExpr)expression;
@@ -181,22 +175,11 @@ public class ParameterContent implements Serializable{
 		else if(expression instanceof ObjectCreationExpr) {
 			try {
 			ObjectCreationExpr objectCreationExpr = (ObjectCreationExpr)expression;
-			//System.out.println("Object Creation Expression: "+objectCreationExpr.getType());
 			SymbolReference<ResolvedConstructorDeclaration> srResolvedConstructorDeclaration = JSSConfigurator.getInstance().getJpf().solve(objectCreationExpr);
 			return "new " + srResolvedConstructorDeclaration.getCorrespondingDeclaration().getClassName()+"("+")";
 			}catch(Exception e) {
 				return expression.toString();
 			}
-			/*if(objectCreationExpr.getScope().isPresent()==false) {
-				ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpr.getType());
-				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-				return "new_"+typeDescriptor.getTypeQualifiedName()+"("+")";
-			}
-			else {
-				ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpr.getType());
-				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-				return "new_"+this.getAbsStringRepWithLiteral(objectCreationExpr.getScope().get())+"."+typeDescriptor.getTypeQualifiedName()+"("+")";
-			}*/
 		}
 		else if(expression instanceof MethodCallExpr) {
 			MethodCallExpr methodCallExpr = (MethodCallExpr)expression;
@@ -225,9 +208,6 @@ public class ParameterContent implements Serializable{
 				return fieldAccessExpr.getScope().toString()+"."+"SN:"+typeDescriptor.getTypeQualifiedName();
 			}
 			else return this.getAbsStringRepWithLiteral(fieldAccessExpr.getScope())+"."+"SN:"+typeDescriptor.getTypeQualifiedName();
-		}
-		else if(expression instanceof CharLiteralExpr) {
-			return "Char";
 		} else if (expression instanceof ThisExpr) {
 			ThisExpr thisExpr = (ThisExpr) expression;
 			// TODO Auto-generated method stub

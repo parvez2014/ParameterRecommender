@@ -10,47 +10,39 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.binding.TypeDescriptor;
+import com.srlab.parameter.binding.TypeResolver;
 
 public class CastExpressionContent extends ParameterContent {
-	private String name;
 	private String castQualifier;
 	private String castTypeQualifiedName;
-	private String expressionTypeQualifiedName;
-
+	private String typeQualifiedName;
+	
 	public CastExpressionContent(CastExpr ce) {
 		super(ce);
-		this.name = ce.toString();
-		this.castQualifier = null;
-		this.castTypeQualifiedName = null;
-		this.expressionTypeQualifiedName = null;
-
-		this.absStringRep = this.getAbsStringRepWithLiteral(ce);
 		this.castQualifier = ce.getType().toString();
-
-		ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(ce.getType());
-		TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-		this.castTypeQualifiedName = typeDescriptor.getTypeQualifiedName();
-
-		Expression expression = ce.getExpression();
-		this.parent = ParameterContent.get(expression);
-		SymbolReference<? extends ResolvedValueDeclaration> srResolvedvalueDeclaration = JSSConfigurator.getInstance()
-				.getJpf().solve(expression);
-		if (srResolvedvalueDeclaration.isSolved()) {
-			typeDescriptor = new TypeDescriptor(srResolvedvalueDeclaration.getCorrespondingDeclaration().getType());
-			this.expressionTypeQualifiedName = typeDescriptor.getTypeQualifiedName();
-		}
 		this.absStringRep = this.getAbsStringRep(ce);
 		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(ce);
+		this.typeQualifiedName = TypeResolver.resolve(ce);
+		ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().convertToUsage(ce.getType());
+		this.castTypeQualifiedName = TypeDescriptor.resolveTypeQualifiedName(resolvedType);
 	}
 
-	public String getName() {
-		return name;
+	public String getCastQualifier() {
+		return castQualifier;
 	}
 
-	public void print() {
+	public String getCastTypeQualifiedName() {
+		return castTypeQualifiedName;
+	}
 
-		System.out.println("CastExpressionContent [name=" + name + ", absStringRep=" + absStringRep + ", castQualifier="
-				+ castQualifier + ", castTypeQualifiedName=" + castTypeQualifiedName + ", expressionTypeQualifiedName="
-				+ expressionTypeQualifiedName + "]");
+	public String getTypeQualifiedName() {
+		return typeQualifiedName;
+	}
+
+	@Override
+	public String toString() {
+		return "CastExpressionContent [castQualifier=" + castQualifier + ", typeQualifiedName=" + typeQualifiedName
+				+ ", rawStringRep=" + rawStringRep + ", parent=" + parent + ", absStringRep=" + absStringRep
+				+ ", absStringRepWithLiteral=" + absStringRepWithLiteral + "]";
 	}
 }

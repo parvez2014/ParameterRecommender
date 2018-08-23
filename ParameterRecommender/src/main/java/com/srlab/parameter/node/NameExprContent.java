@@ -27,29 +27,13 @@ public class NameExprContent extends ParameterContent{
 		super(nameExpr);
 		this.identifier=null;
 		this.typeQualifiedName=null;
-		this.absStringRep=null;
-		
+	
 		SimpleName sn = nameExpr.asNameExpr().getName();
 		this.identifier = sn.getIdentifier();
 		this.absStringRep = this.getAbsStringRep(nameExpr);
 		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(nameExpr);
 		this.typeQualifiedName = TypeResolver.resolve(nameExpr);
-		this.parent = null;
-		
-		/*JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
-		SymbolReference<? extends ResolvedValueDeclaration> srResolvedValueDeclaration  = jpf.solve(sn);
-		if(srResolvedValueDeclaration.isSolved()) {
-			ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
-			ResolvedType resolvedType = resolvedValueDeclaration.getType();
-			TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-		
-			this.name = sn.toString();
-			this.identifier = sn.getIdentifier();
-			this.typeQualifiedName = typeDescriptor.getTypeQualifiedName();
-			this.absStringRep = this.getAbsStringRep(nameExpr);
-			this.partlyAbsStringRep = this.getStringRep(nameExpr);
-			this.parent = null;
-		}*/
+		this.parent = null;		
 	}
 	
 	public String getIdentifier() {

@@ -12,30 +12,15 @@ import com.srlab.parameter.binding.TypeDescriptor;
 
 public class UnknownContent extends ParameterContent{
 	
-	private String typeQualifiedName; //typequalifiedname of the 
-	
 	public UnknownContent(Expression expression){
 		super(expression);
-		this.rawStringRep = expression.toString();
 		this.absStringRep ="unknown";
 		this.absStringRepWithLiteral = "unknown";
-		this.typeQualifiedName = null;
-		
-		//try to resolve the type binding
-		/*JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
-		SymbolReference<? extends ResolvedValueDeclaration>  srResolvedValueDeclaration  = jpf.solve(expression);
-		if(srResolvedValueDeclaration.isSolved()) {
-			ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
-			ResolvedType resolvedType = resolvedValueDeclaration.getType();
-			TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-			this.typeQualifiedName = typeDescriptor.getTypeQualifiedName();
-		}*/
 	}
-	
-	public String getTypeQualifiedName() {
-		return typeQualifiedName;
-	}
-	public void print(){
-		System.out.print("Name: "+this.getRawStringRep()+" TypeQualifiedName: "+this.getTypeQualifiedName()+ " Abstract String Rep: "+this.getAbsStringRep());
+
+	@Override
+	public String toString() {
+		return "UnknownContent [rawStringRep=" + rawStringRep + ", parent=" + parent + ", absStringRep=" + absStringRep
+				+ ", absStringRepWithLiteral=" + absStringRepWithLiteral + "]";
 	}
 }

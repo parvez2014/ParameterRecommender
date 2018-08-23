@@ -14,59 +14,39 @@ import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.srlab.parameter.binding.JSSConfigurator;
 import com.srlab.parameter.binding.TypeDescriptor;
+import com.srlab.parameter.binding.TypeResolver;
 
 public class ThisExpressionContent extends ParameterContent{
 	private String classQualifier;
-	private String classQualifiedName;
-	private String thisQualifiedName;
+	private String typeQualifiedName;
 	public ThisExpressionContent(ThisExpr thisExpr) {
 		super(thisExpr);
+		this.parent = null;
+		this.classQualifier = null;
+		this.typeQualifiedName = null;
 		this.absStringRep = this.getAbsStringRep(thisExpr);
 		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(thisExpr);
-		this.parent = null;
-
-		try {
-			JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
-			if (thisExpr.getClassExpr().isPresent()) {
-				this.classQualifier = thisExpr.getClassExpr().get().toString();
-
-				SymbolReference<? extends ResolvedValueDeclaration> srResolvedValueDeclaration = jpf
-						.solve(thisExpr.getClassExpr().get());
-				if (srResolvedValueDeclaration.isSolved()) {
-					ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration
-							.getCorrespondingDeclaration();
-					ResolvedType resolvedType = resolvedValueDeclaration.getType();
-					TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-					this.classQualifiedName = typeDescriptor.getTypeQualifiedName();
-				}
-				this.parent = ParameterContent.get(thisExpr.getClassExpr().get());
-			} else {
-				this.classQualifier = null;
-				this.classQualifiedName = null;
-				this.parent = null;
-			}
-
-			SymbolReference<? extends ResolvedTypeDeclaration> srResolvedTypeDeclaration = jpf.solve(thisExpr);
-			if (srResolvedTypeDeclaration.isSolved()) {
-				ResolvedTypeDeclaration resolvedTypeDeclaration = srResolvedTypeDeclaration
-						.getCorrespondingDeclaration();
-				this.thisQualifiedName = resolvedTypeDeclaration.getQualifiedName();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		
+		TypeResolver.resolve(thisExpr);
+		if(thisExpr.getClassExpr().isPresent()) {
+			this.classQualifier = thisExpr.getClassExpr().get().toString();
+			this.parent = ParameterContent.get(thisExpr.getClassExpr().get());
 		}
 	}
-	
+
 	public String getClassQualifier() {
 		return classQualifier;
 	}
-	public String getClassQualifiedName() {
-		return classQualifiedName;
+
+
+	public String getTypeQualifiedName() {
+		return typeQualifiedName;
 	}
-	public String getThisQualifiedName() {
-		return thisQualifiedName;
-	}
-	public void print(){
-		System.out.print("THIS Name: "+this.getRawStringRep()+" ClassQualifier: "+this.getClassQualifier()+" ClassQN: "+this.getClassQualifiedName()+" AbsStrRep: "+this.getAbsStringRep());
+
+	@Override
+	public String toString() {
+		return "ThisExpressionContent [classQualifier=" + classQualifier + ", typeQualifiedName=" + typeQualifiedName
+				+ ", rawStringRep=" + rawStringRep + ", parent=" + parent + ", absStringRep=" + absStringRep
+				+ ", absStringRepWithLiteral=" + absStringRepWithLiteral + "]";
 	}
 }

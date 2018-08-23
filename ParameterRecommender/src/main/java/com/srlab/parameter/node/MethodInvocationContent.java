@@ -18,30 +18,20 @@ public class MethodInvocationContent extends ParameterContent{
 	private String methodName;
 	private String receiver;
 	private String receiverTypeQualifiedName;
-	private String absStringRep;
 	
 	public MethodInvocationContent(MethodCallExpr mi){
 		super(mi);
+		this.parent = null;
+		this.receiver = null;
+		this.receiverTypeQualifiedName = null;
+
 		this.methodName = mi.getName().getIdentifier();
 		this.absStringRep = this.getAbsStringRep(mi);
 		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(mi);
 		
-		this.parent = null;
-		this.receiver = null;
-		this.receiverTypeQualifiedName = null;
-		
 		if(mi.getScope().isPresent()) {
 			this.receiver = mi.getScope().toString();
 			this.receiverTypeQualifiedName = TypeResolver.resolve( mi.getScope().get());
-			
-			/*JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
-			SymbolReference<? extends ResolvedValueDeclaration> srResolvedValueDeclaration  = jpf.solve(mi.getScope().get());
-			if(srResolvedValueDeclaration.isSolved()) {
-				ResolvedValueDeclaration resolvedValueDeclaration = srResolvedValueDeclaration.getCorrespondingDeclaration();
-				ResolvedType resolvedType = resolvedValueDeclaration.getType();
-				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-				this.receiverTypeQualifiedName = typeDescriptor.getTypeQualifiedName();
-			}*/
 			this.parent = ParameterContent.get(mi.getScope().get());
 		}
 	}
