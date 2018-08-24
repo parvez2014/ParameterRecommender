@@ -15,15 +15,20 @@ import com.srlab.parameter.binding.TypeResolver;
 public class CastExpressionContent extends ParameterContent {
 	private String castQualifier;
 	private String castTypeQualifiedName;
-	
+	private String expression;
 	public CastExpressionContent(CastExpr ce) {
 		super(ce);
+		this.expression = ce.getExpression().toString();
 		this.castQualifier = ce.getType().toString();
 		ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().convertToUsage(ce.getType());
 		this.castTypeQualifiedName = TypeDescriptor.resolveTypeQualifiedName(resolvedType);
 		this.absStringRep = this.getAbsStringRep(ce);
 		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(ce);
 		this.parent = ParameterContent.get(ce.getExpression());
+	}
+
+	public String getExpression() {
+		return expression;
 	}
 
 	public String getCastQualifier() {

@@ -183,7 +183,7 @@ public class ParameterContent implements Serializable{
 			else if(expression instanceof MethodCallExpr) {
 				MethodCallExpr methodCallExpr = (MethodCallExpr)expression;
 				if(((MethodCallExpr) expression).getScope().isPresent()) {
-					return this.getAbsStringRepWithLiteral(methodCallExpr.getScope().get())+"."+methodCallExpr.getName()+"("+")";
+					return this.getAbsStringRep(methodCallExpr.getScope().get())+"."+methodCallExpr.getName()+"("+")";
 				}
 				else {
 					return methodCallExpr.getName()+"("+")";
