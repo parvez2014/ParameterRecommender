@@ -4,16 +4,17 @@ import java.io.File;
 
 public class Config {
 
-	public static final String ROOT_PATH = "/media/parvez/IntelSSD/research/parameter_recommendation/repository";
+	public static final String ROOT_PATH = "/home/local/SAIL/parvezku01/research/parameter_recommendation/repository";
 	
-	public static final String REPOSITORY_NAME = "jedit"; 
+	public static final String REPOSITORY_NAME = "eclipse-sourceBuild-srcIncluded-3.7.2"; 
 	public static final String REPOSITORY_PATH = ROOT_PATH + File.separator + REPOSITORY_NAME;
 	public static final String MODEL_ENTRY_OUTPUT_PATH = ROOT_PATH + File.separator + REPOSITORY_NAME+".mde";
 	public static final String REPOSITORY_REVISION_PATH = ROOT_PATH + File.separator + REPOSITORY_NAME + "_revisions";
 	public static final String EXTERNAL_DEPENDENCY_PATH = ROOT_PATH + File.separator+ REPOSITORY_NAME + "_dependencies";
 	
 	public static final String[] FILE_EXTENSIONS = {".java"};
-	public static final String FRAMEWORKS[] = {"javax.swing.","java.awt.","java.util.","java.io.","java.math.","java.net.","java.nio.","java.lang."};
+	
+	public static final String FRAMEWORKS[] = {"org.eclipse.swt.","org.eclipse.jface.","javax.swing.","java.awt.","java.util.","java.io.","java.math.","java.net.","java.nio.","java.lang.","java.rmi.","java.sql.","java.security."};
 	
 	public static boolean isInteresting(String qualifiedTypeName) {
 		for(String prefix:FRAMEWORKS) {
