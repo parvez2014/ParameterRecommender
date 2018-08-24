@@ -78,12 +78,15 @@ public class ModelEntryCollectionDriver implements Serializable {
 							for(ModelEntry modelEntry:methodCallExprVisitor.getModelEntryList()) {
 								StringBuffer sbParameterAbsStringRep = new StringBuffer("");
 								StringBuffer sbParameterAbsStringRepWithLiteral = new StringBuffer("");
+								StringBuffer sbParameterType = new StringBuffer("");
 								
 								for(ParameterContent parameterContent: modelEntry.getParameterContentList()) {
 									sbParameterAbsStringRep.append(parameterContent.getAbsStringRep());
 									sbParameterAbsStringRep.append(" ");
 									sbParameterAbsStringRepWithLiteral.append(parameterContent.getAbsStringRepWithLiteral());
 									sbParameterAbsStringRepWithLiteral.append(" ");
+									sbParameterType.append(parameterContent.getParameterExpressionType());
+									sbParameterType.append(" ");
 								}
 								//System.out.println("MethodCallEntity: "+modelEntry.getMethodCallEntity());
 								bw.write("MethodCallExpression: "+methodCallExprVisitor.getHmModelEntryToMethodCallExpr().get(modelEntry));
@@ -96,10 +99,12 @@ public class ModelEntryCollectionDriver implements Serializable {
 								bw.newLine();
 								bw.write("Path: "+modelEntry.getPath());
 								bw.newLine();
-								
-								bw.write("AbsStringRep: "+sbParameterAbsStringRep);
+								bw.write("ParameterExpressionType: "+sbParameterType.toString());
 								bw.newLine();
-								bw.write("AbsStringRepWithLiteral: "+sbParameterAbsStringRepWithLiteral);
+								
+								bw.write("AbsStringRep: "+sbParameterAbsStringRep.toString());
+								bw.newLine();
+								bw.write("AbsStringRepWithLiteral: "+sbParameterAbsStringRepWithLiteral.toString());
 								bw.newLine();
 								bw.write("Neighborlist: "+modelEntry.getNeighborList());
 								bw.newLine();
@@ -132,7 +137,7 @@ public class ModelEntryCollectionDriver implements Serializable {
 	public void run() throws IOException {
 		File root = new File(Config.REPOSITORY_PATH);
 		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(Config.MODEL_ENTRY_OUTPUT_PATH)));	
-	    JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH, Config.EXTERNAL_DEPENDENCY_PATH);
+	    JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH, Config.EXTERNAL_DEPENDENCY_PATH,true);
 	    this.process(Config.REPOSITORY_PATH, bw);
 	    bw.close();
 	}
@@ -149,7 +154,7 @@ public class ModelEntryCollectionDriver implements Serializable {
 			List<String> filePathList = this.collectSourceFiles(child);
 			totalScannedFiles = totalScannedFiles + filePathList.size();
 			
-			JSSConfigurator.getInstance().init(child.getAbsolutePath(), Config.EXTERNAL_DEPENDENCY_PATH);
+			JSSConfigurator.getInstance().init(child.getAbsolutePath(), Config.EXTERNAL_DEPENDENCY_PATH,true);
 			this.process(child.getAbsolutePath(), bw);
 			JSSConfigurator.getInstance().clear();
 		}

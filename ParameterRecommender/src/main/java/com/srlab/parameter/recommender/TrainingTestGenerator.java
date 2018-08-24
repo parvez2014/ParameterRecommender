@@ -98,7 +98,7 @@ public class TrainingTestGenerator {
 		}
 		System.out.println("Total Model Entries: "+ totalParameterModelEntries );
 		//step-2: collect 80% of model entries for training
-		int totalTestModelEntries = (int)(totalParameterModelEntries*(0.40f));
+		int totalTestModelEntries = (int)(totalParameterModelEntries*(0.20f));
 		int remains = totalTestModelEntries;
 		
 		//collect the testData
@@ -135,7 +135,7 @@ public class TrainingTestGenerator {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH);
+		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH,true);
 		ModelEntryCollectionDriver modelEntryCollectionDriver = new ModelEntryCollectionDriver(Config.REPOSITORY_PATH);
 		try {
 			modelEntryCollectionDriver.run();

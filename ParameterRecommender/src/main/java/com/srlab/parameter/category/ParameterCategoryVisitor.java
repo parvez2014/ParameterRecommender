@@ -32,6 +32,7 @@ import com.github.javaparser.ast.expr.DoubleLiteralExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.IntegerLiteralExpr;
+import com.github.javaparser.ast.expr.LiteralExpr;
 import com.github.javaparser.ast.expr.LongLiteralExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
@@ -170,9 +171,9 @@ public class ParameterCategoryVisitor extends VoidVisitorAdapter<Void>{
 							
 							//+++++++++++++++++++++++++++++++++++++++++++++++++
 							
-							System.out.println("**********Expression: "+expression+" TQN:"+TypeResolver.resolve(expression));
-							if(expression instanceof FieldAccessExpr) {
-								System.out.println("Field Access Expression: "+expression+" Type: "+TypeResolver.resolve(expression.asFieldAccessExpr().getScope()));	
+							//System.out.println("**********Expression: "+expression+" TQN:"+TypeResolver.resolve(expression));
+							//if(expression instanceof FieldAccessExpr) {
+							//	System.out.println("Field Access Expression: "+expression+" Type: "+TypeResolver.resolve(expression.asFieldAccessExpr().getScope()));	
 								/*FieldAccessExpr fieldAccessExpr = (FieldAccessExpr)expression;
 								SymbolReference<? extends ResolvedValueDeclaration> srReceiver = JSSConfigurator.getInstance().getJpf().solve(fieldAccessExpr.getScope());
 								//ResolvedTypeDeclaration resolvedTypeDeclaration = srReceiver.getCorrespondingDeclaration().declaringType();
@@ -180,7 +181,7 @@ public class ParameterCategoryVisitor extends VoidVisitorAdapter<Void>{
 								System.out.println("Field Scope is NameExpr: "+(fieldAccessExpr.getScope() instanceof NameExpr) +" Parent: "+fieldAccessExpr.getScope().getParentNode().get());
 								 */	
 								//System.out.println("Field Receiver QN: "+resolvedTypeDeclaration.getQualifiedName());
-							}
+							//}
 							//parameterCategorizer.add(m, m.getArguments().get(i),i);
 						}
 						for(int i=0;i<m.getArguments().size();i++) {
@@ -188,14 +189,17 @@ public class ParameterCategoryVisitor extends VoidVisitorAdapter<Void>{
 							parameterCategorizer.add(m, m.getArguments().get(i),i);
 						}
 						}catch(Exception e) {
-							//e.printStackTrace();
+							e.printStackTrace();
 						}
-						for(Expression expression:m.getArguments()) {
+						
+						/*for(Expression expression:m.getArguments()) {
+							if(expression instanceof LiteralExpr) {
+							}
 							ParameterContent parameterContent = ParameterContent.get(expression);
 							System.out.println("+++++++++++++++++===Expression: "+expression+"  Parameter Content: "+parameterContent.getAbsStringRepWithLiteral(expression));
 							System.out.println("Expression Type: "+parameterContent.getParameterExpressionType()+ "  Parameter Content: "+parameterContent.getAbsStringRep());
 							
-						}
+						}*/
 					}
 				}
 			}

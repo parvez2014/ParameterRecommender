@@ -25,14 +25,19 @@ public class QualifiedNameContent extends ParameterContent {
 
 	public QualifiedNameContent(FieldAccessExpr fieldAccessExpr) {
 		super(fieldAccessExpr);
+		this.typeQualifiedName = null;
+		this.parent = null;
+		
 		this.identifier = fieldAccessExpr.getName().getIdentifier();
 		this.scope = fieldAccessExpr.getScope().toString();
 
 		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(fieldAccessExpr);
 		this.absStringRep = this.getAbsStringRep(fieldAccessExpr);
-
-		this.typeQualifiedName = TypeResolver.resolve(fieldAccessExpr);
-		this.parent = ParameterContent.get(fieldAccessExpr.getScope());
+		try {
+			this.typeQualifiedName = TypeResolver.resolve(fieldAccessExpr);
+		}catch(Exception e) {
+			
+		}
 
 		/*
 		 * SymbolReference<? extends ResolvedValueDeclaration>

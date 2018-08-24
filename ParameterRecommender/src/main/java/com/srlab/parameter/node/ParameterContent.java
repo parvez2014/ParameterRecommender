@@ -137,7 +137,66 @@ public class ParameterContent implements Serializable{
 			return new UnknownContent(expression);
 		}
 	}
-
+	//The problem with Java symbol solver is that if the NameExpr indicates a type name, such as BufferedReder, it can solve the type of BufferedReader
+		public String getAbsStringRep(Expression expression) {
+			if (expression instanceof StringLiteralExpr) {
+				return expression.toString();
+			} else if (expression instanceof NullLiteralExpr) {
+				return expression.toString();
+			} else if (expression instanceof BooleanLiteralExpr) {
+				return expression.toString();
+			} 
+			else if(expression instanceof DoubleLiteralExpr) {
+				return expression.toString();
+			}
+			else if(expression instanceof LongLiteralExpr) {
+				return expression.toString();	
+			}
+			
+			else if(expression instanceof IntegerLiteralExpr) {
+				return expression.toString();	
+			}
+		
+			else if(expression instanceof CharLiteralExpr) {
+				return expression.toString();
+			}
+			else if(expression instanceof NameExpr) {
+				SimpleName sn = expression.asNameExpr().getName(); 
+				String typeQualifiedName = TypeResolver.resolve(expression);
+				return "SN:"+typeQualifiedName;
+			}
+			else if(expression instanceof CastExpr) {
+				CastExpr ce = (CastExpr)expression;
+				ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(ce.getType());
+				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
+				return "("+typeDescriptor.getTypeQualifiedName()+")"+this.getAbsStringRep(ce.getExpression());
+			}
+			else if(expression instanceof ObjectCreationExpr) {
+				try {
+				ObjectCreationExpr objectCreationExpr = (ObjectCreationExpr)expression;
+				SymbolReference<ResolvedConstructorDeclaration> srResolvedConstructorDeclaration = JSSConfigurator.getInstance().getJpf().solve(objectCreationExpr);
+				return "new_" + srResolvedConstructorDeclaration.getCorrespondingDeclaration().getClassName()+"("+")";
+				}catch(Exception e) {
+					return expression.toString();
+				}
+			}
+			else if(expression instanceof MethodCallExpr) {
+				MethodCallExpr methodCallExpr = (MethodCallExpr)expression;
+				if(((MethodCallExpr) expression).getScope().isPresent()) {
+					return this.getAbsStringRepWithLiteral(methodCallExpr.getScope().get())+"."+methodCallExpr.getName()+"("+")";
+				}
+				else {
+					return methodCallExpr.getName()+"("+")";
+				}
+			}
+			else if(expression instanceof FieldAccessExpr) {
+				return expression.toString();
+				
+			} else if (expression instanceof ThisExpr) {
+				return expression.toString();
+			}
+			else return null;
+		}
 	//The problem with Java symbol solver is that if the NameExpr indicates a type name, such as BufferedReder, it can solve the type of BufferedReader
 	public String getAbsStringRepWithLiteral(Expression expression) {
 		if (expression instanceof StringLiteralExpr) {
@@ -176,7 +235,7 @@ public class ParameterContent implements Serializable{
 			try {
 			ObjectCreationExpr objectCreationExpr = (ObjectCreationExpr)expression;
 			SymbolReference<ResolvedConstructorDeclaration> srResolvedConstructorDeclaration = JSSConfigurator.getInstance().getJpf().solve(objectCreationExpr);
-			return "new " + srResolvedConstructorDeclaration.getCorrespondingDeclaration().getClassName()+"("+")";
+			return "new_" + srResolvedConstructorDeclaration.getCorrespondingDeclaration().getClassName()+"("+")";
 			}catch(Exception e) {
 				return expression.toString();
 			}
@@ -191,8 +250,8 @@ public class ParameterContent implements Serializable{
 			}
 		}
 		else if(expression instanceof FieldAccessExpr) {
-			
-			FieldAccessExpr fieldAccessExpr = (FieldAccessExpr)expression;
+			return expression.toString();
+			/*FieldAccessExpr fieldAccessExpr = (FieldAccessExpr)expression;
 			SimpleName simpleName = fieldAccessExpr.getName();
 			JavaParserFacade jpf = JSSConfigurator.getInstance().getJpf();
 			SymbolReference<? extends ResolvedValueDeclaration> srResolvedValueDeclaration = jpf
@@ -208,10 +267,13 @@ public class ParameterContent implements Serializable{
 				return fieldAccessExpr.getScope().toString()+"."+"SN:"+typeDescriptor.getTypeQualifiedName();
 			}
 			else return this.getAbsStringRepWithLiteral(fieldAccessExpr.getScope())+"."+"SN:"+typeDescriptor.getTypeQualifiedName();
+			*/
+			 
+			
 		} else if (expression instanceof ThisExpr) {
-			ThisExpr thisExpr = (ThisExpr) expression;
+			return expression.toString();
 			// TODO Auto-generated method stub
-			if (thisExpr.getClassExpr().isPresent()) {
+			/*if (thisExpr.getClassExpr().isPresent()) {
 				if (thisExpr.getClassExpr().get() instanceof ClassExpr) { // Example: Worls.this
 					return thisExpr.getClassExpr().get().toString() + "." + "this";
 				} else if (thisExpr.getClassExpr().get() instanceof NameExpr) { // Example: m.this;
@@ -233,12 +295,12 @@ public class ParameterContent implements Serializable{
 				} else
 					return thisExpr.toString();
 			}
-			return thisExpr.toString();
+			return thisExpr.toString();*/
 		}
 		else return null;
 	}
 	
-	public String getAbsStringRep(Expression expression) {
+	/*public String getAbsStringRep(Expression expression) {
 		if (expression instanceof StringLiteralExpr) {
 			return expression.toString();
 		} else if(expression instanceof CharLiteralExpr) {
@@ -275,16 +337,16 @@ public class ParameterContent implements Serializable{
 			return "new " + srResolvedConstructorDeclaration.getCorrespondingDeclaration().getClassName()+"("+")";
 			
 			//System.out.println("Object Creation Expression: "+objectCreationExpr.getType());
-			/*if(objectCreationExpr.getScope().isPresent()==false) {
-				ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpr.getType());
-				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-				return "new "+typeDescriptor.getTypeQualifiedName()+"("+")";
-			}
-			else {
-				ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpr.getType());
-				TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
-				return "new "+this.getAbsStringRep(objectCreationExpr.getScope().get())+"."+typeDescriptor.getTypeQualifiedName()+"("+")";
-			}*/
+			//if(objectCreationExpr.getScope().isPresent()==false) {
+			//	ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpr.getType());
+			//	TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
+			//	return "new "+typeDescriptor.getTypeQualifiedName()+"("+")";
+			//}
+			//else {
+			//	ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().getType(objectCreationExpr.getType());
+			//	TypeDescriptor typeDescriptor = new TypeDescriptor(resolvedType);
+			//	return "new "+this.getAbsStringRep(objectCreationExpr.getScope().get())+"."+typeDescriptor.getTypeQualifiedName()+"("+")";
+			//}
 			}catch(Exception e) {
 				return expression.toString();
 			}
@@ -344,7 +406,7 @@ public class ParameterContent implements Serializable{
 			else  return thisExpr.toString();
 	    }
 		else throw new RuntimeException("Error in creating absStringRep of fieldAccessExpr: "+expression);
-	}
+	}*/
 	/*public  String getStringRep(Node node) {
 
 		if (expression instanceof SimpleName &&((SimpleName) expression).resolveTypeBinding()!=null)

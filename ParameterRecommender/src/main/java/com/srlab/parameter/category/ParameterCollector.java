@@ -55,7 +55,7 @@ public class ParameterCollector {
 	}
 	
 	public static void main(String args[]) {
-		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH, Config.EXTERNAL_DEPENDENCY_PATH);
+		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH, Config.EXTERNAL_DEPENDENCY_PATH,true);
 		ParameterCollector parameterCollector = new ParameterCollector(Config.REPOSITORY_PATH);
 		parameterCollector.run();
 	}

@@ -15,16 +15,15 @@ import com.srlab.parameter.binding.TypeResolver;
 public class CastExpressionContent extends ParameterContent {
 	private String castQualifier;
 	private String castTypeQualifiedName;
-	private String typeQualifiedName;
 	
 	public CastExpressionContent(CastExpr ce) {
 		super(ce);
 		this.castQualifier = ce.getType().toString();
-		this.absStringRep = this.getAbsStringRep(ce);
-		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(ce);
-		this.typeQualifiedName = TypeResolver.resolve(ce);
 		ResolvedType resolvedType = JSSConfigurator.getInstance().getJpf().convertToUsage(ce.getType());
 		this.castTypeQualifiedName = TypeDescriptor.resolveTypeQualifiedName(resolvedType);
+		this.absStringRep = this.getAbsStringRep(ce);
+		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(ce);
+		this.parent = ParameterContent.get(ce.getExpression());
 	}
 
 	public String getCastQualifier() {
@@ -35,14 +34,10 @@ public class CastExpressionContent extends ParameterContent {
 		return castTypeQualifiedName;
 	}
 
-	public String getTypeQualifiedName() {
-		return typeQualifiedName;
-	}
-
 	@Override
 	public String toString() {
-		return "CastExpressionContent [castQualifier=" + castQualifier + ", typeQualifiedName=" + typeQualifiedName
-				+ ", rawStringRep=" + rawStringRep + ", parent=" + parent + ", absStringRep=" + absStringRep
-				+ ", absStringRepWithLiteral=" + absStringRepWithLiteral + "]";
+		return "CastExpressionContent [castQualifier=" + castQualifier + ", castTypeQualifiedName="
+				+ castTypeQualifiedName + ", rawStringRep=" + rawStringRep + ", parent=" + parent + ", absStringRep="
+				+ absStringRep + ", absStringRepWithLiteral=" + absStringRepWithLiteral + "]";
 	}
 }

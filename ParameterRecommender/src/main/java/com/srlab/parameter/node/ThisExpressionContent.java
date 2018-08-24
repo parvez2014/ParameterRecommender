@@ -26,11 +26,10 @@ public class ThisExpressionContent extends ParameterContent{
 		this.typeQualifiedName = null;
 		this.absStringRep = this.getAbsStringRep(thisExpr);
 		this.absStringRepWithLiteral = this.getAbsStringRepWithLiteral(thisExpr);
-		
-		TypeResolver.resolve(thisExpr);
+			
+		this.typeQualifiedName = TypeResolver.resolve(thisExpr);
 		if(thisExpr.getClassExpr().isPresent()) {
 			this.classQualifier = thisExpr.getClassExpr().get().toString();
-			this.parent = ParameterContent.get(thisExpr.getClassExpr().get());
 		}
 	}
 
@@ -49,4 +48,5 @@ public class ThisExpressionContent extends ParameterContent{
 				+ ", rawStringRep=" + rawStringRep + ", parent=" + parent + ", absStringRep=" + absStringRep
 				+ ", absStringRepWithLiteral=" + absStringRepWithLiteral + "]";
 	}
+
 }

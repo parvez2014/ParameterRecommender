@@ -556,7 +556,7 @@ public class ParameterRecommender {
 	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH);
+		JSSConfigurator.getInstance().init(Config.REPOSITORY_PATH,Config.EXTERNAL_DEPENDENCY_PATH,true);
 		ModelEntryCollectionDriver modelEntryCollectionDriver = new ModelEntryCollectionDriver(Config.REPOSITORY_PATH);
 		try {
 			modelEntryCollectionDriver.run();

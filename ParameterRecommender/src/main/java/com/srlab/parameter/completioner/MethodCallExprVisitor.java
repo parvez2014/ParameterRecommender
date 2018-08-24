@@ -528,7 +528,7 @@ public class MethodCallExprVisitor extends VoidVisitorAdapter<Void>{
 					if(srResolvedMethodDeclaration.isSolved() && srResolvedMethodDeclaration.getCorrespondingDeclaration()!=null) {
 						ResolvedMethodDeclaration resolvedMethodDeclaration = srResolvedMethodDeclaration.getCorrespondingDeclaration();
 						
-						if(Config.isInteresting(resolvedMethodDeclaration.getQualifiedName())) {
+						if(Config.isInteresting(resolvedMethodDeclaration.getQualifiedName()) && m.getArguments().size()>0) {
 							//determine Receiver Type
 							Expression receiverExpression = m.getScope().get();
 							String receiverType = TypeResolver.resolve(m.getScope().get());
