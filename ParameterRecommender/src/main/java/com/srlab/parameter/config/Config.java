@@ -4,9 +4,9 @@ import java.io.File;
 
 public class Config {
 
-	public static final String ROOT_PATH = "/home/local/SAIL/parvezku01/research/parameter_recommendation/repository";
+	public static final String ROOT_PATH = "/home/parvez/research/ParameterCompletion/repository";
 	
-	public static final String REPOSITORY_NAME = "eclipse-sourceBuild-srcIncluded-3.7.2"; 
+	public static final String REPOSITORY_NAME = "jedit-svn"; 
 	public static final String REPOSITORY_PATH = ROOT_PATH + File.separator + REPOSITORY_NAME;
 	public static final String MODEL_ENTRY_OUTPUT_PATH = ROOT_PATH + File.separator + REPOSITORY_NAME+".mde";
 	public static final String REPOSITORY_REVISION_PATH = ROOT_PATH + File.separator + REPOSITORY_NAME + "_revisions";

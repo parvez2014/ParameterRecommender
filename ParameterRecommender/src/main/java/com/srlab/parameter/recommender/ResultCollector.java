@@ -48,9 +48,9 @@ public class ResultCollector {
 	}
 	public void print() {
 		System.out.println("Total Testcases: "+this.totalTestcases);
-		System.out.println("Recommendation Made: "+this.recommendationMade + " Recommendation Nodt Made: "+this.recommendationNotMade+" "+"Recommendation Made Unsuccessful: "+this.recommendationMadeUnsuccessful);
+		System.out.println("Recommendation Made: "+this.recommendationMade + " Recommendation Not Made: "+this.recommendationNotMade+" "+"Recommendation Made Unsuccessful: "+this.recommendationMadeUnsuccessful);
 		System.out.println("Top-1: "+top_1+" "+"Top-3: "+top_3+" "+"Top-5: "+top_5+" "+"Top-10: "+top_10);
-		System.out.println("PTop-1: "+((top_1*100.0f)/this.totalTestcases)+" "+"Top-3: "+((top_3*100.0f)/this.totalTestcases)+" "+"Top-5: "+((top_5*100.0f)/this.totalTestcases)+" "+"Top-10: "+((top_10*100.0f)/this.totalTestcases));
+		System.out.println("RTop-1: "+((top_1*100.0f)/this.totalTestcases)+" "+"RTop-3: "+((top_3*100.0f)/this.totalTestcases)+" "+"RTop-5: "+((top_5*100.0f)/this.totalTestcases)+" "+"RTop-10: "+((top_10*100.0f)/this.totalTestcases));
 	}
 	
 	public int getTotalTestcases() {

@@ -123,17 +123,17 @@ public class ParameterRecommender {
 											parameterModelEntry.getFilePath(),
 											sourcePosition.line + ":" + sourcePosition.column,
 											parameterModelEntry.getParameterPosition());
-									if (testModelEntry.getParameterContent() instanceof NullLiteralContent
-											|| testModelEntry.getParameterContent() instanceof StringLiteralContent
-											|| testModelEntry.getParameterContent() instanceof CharLiteralContent
-											|| testModelEntry.getParameterContent() instanceof NumberLiteralContent
-											|| testModelEntry.getParameterContent() instanceof BooleanLiteralContent
-											|| parameterModelEntry.getParameterContent() instanceof ThisExpressionContent
-											||parameterModelEntry.getParameterContent() instanceof NameExprContent
+									if (//testModelEntry.getParameterContent() instanceof NullLiteralContent
+											//|| testModelEntry.getParameterContent() instanceof StringLiteralContent
+											//|| testModelEntry.getParameterContent() instanceof CharLiteralContent
+											//|| testModelEntry.getParameterContent() instanceof NumberLiteralContent
+											//|| testModelEntry.getParameterContent() instanceof BooleanLiteralContent
+											//|| parameterModelEntry.getParameterContent() instanceof ThisExpressionContent
+											parameterModelEntry.getParameterContent() instanceof NameExprContent
 											
-								//|| parameterModelEntry.getParameterContent() instanceof QualifiedNameContent
-								//|| parameterModelEntry.getParameterContent() instanceof ClassInstanceCreationContent
-								 ||parameterModelEntry.getParameterContent() instanceof MethodInvocationContent
+								   //|| parameterModelEntry.getParameterContent() instanceof QualifiedNameContent
+								   //|| parameterModelEntry.getParameterContent() instanceof ClassInstanceCreationContent
+								   //||parameterModelEntry.getParameterContent() instanceof MethodInvocationContent
 											) {
 										System.out.println("Test Case Counter: " + (testCaseCounter++) + "/"
 												+ testParameterModelEntryList.size());
@@ -155,7 +155,22 @@ public class ParameterRecommender {
 		resultCollector.print();
 	}
 	
-	public String getNameReplacedStringExpr(ParameterContent parameterContent, SimpleNameCollector snc) {
+	public String getAbsStringRepWithRawVarName(ParameterContent parameterContent) {
+		if(parameterContent instanceof MethodInvocationContent) {
+			MethodInvocationContent methodInvocationContent = (MethodInvocationContent) parameterContent;
+			if(methodInvocationContent.getParent()!=null) {
+				return this.getAbsStringRepWithRawVarName(methodInvocationContent.getParent())+"."+methodInvocationContent.getMethodName()+"("+")";
+			}
+			else return methodInvocationContent.getMethodName()+"("+")";
+		}
+		else if(parameterContent instanceof NameExprContent) {
+			NameExprContent nameExprContent = (NameExprContent)parameterContent;
+			return nameExprContent.getIdentifier();
+		}
+		else return parameterContent.toString();
+
+	}
+	public String getNameReplacedStringExpr(ParameterContent parameterContent, SimpleNameCollector snc, ParameterContent baseParameterContent) {
 		
 		if(parameterContent instanceof QualifiedNameContent) {
 			QualifiedNameContent qnc = (QualifiedNameContent)parameterContent;
@@ -163,7 +178,7 @@ public class ParameterRecommender {
 			List<String> varList = simpleNameRecommender.recommend();
 			//System.out.println("Scope: "+qnc.getParent().getAbsStringRep());
 			System.out.println("identifier: "+qnc.getIdentifier());
-			return parameterContent.getRawStringRep().trim();
+			return parameterContent.getAbsStringRep();
 			/*if(Character.isUpperCase(qnc.getScope().charAt(0))&& Character.isUpperCase(qnc.getIdentifier().charAt(0))) {
 				return qnc.getScope().toString()+"."+qnc.getIdentifier();
 			}
@@ -196,7 +211,7 @@ public class ParameterRecommender {
 		else if(parameterContent instanceof MethodInvocationContent) {
 			MethodInvocationContent mic = (MethodInvocationContent)parameterContent;
 			if(mic.getParent()!=null) {
-				return this.getNameReplacedStringExpr(mic.getParent(), snc)+"."+mic.getMethodName()+"("+")";
+				return this.getNameReplacedStringExpr(mic.getParent(), snc, baseParameterContent)+"."+mic.getMethodName()+"("+")";
 			}
 			else return mic.getMethodName()+"("+")";
 		}
@@ -210,11 +225,12 @@ public class ParameterRecommender {
 		List<ParameterModelEntry> possibleCandidateList = new ArrayList();
 		final HashMap<ParameterModelEntry, Float> hmParameterModelEntryToSimilarity = new HashMap();
 		final HashMap<String, Integer> hmFrequency = new HashMap();
-		
+		boolean does_we_have_example = false;
 		if(mkRecommenderModel.containsKey(query.getReceiverType(),
 				query.getModelEntry().getMethodCallEntity().getMethodDeclarationEntity().getName(),
 				query.getParameterPosition())) 
 		{
+			does_we_have_example = true;
 			//Step-1: collect possible candidate list based on receiver type, method name and parameter position
 			possibleCandidateList = (List<ParameterModelEntry>)mkRecommenderModel.get(query.getReceiverType(),
 				query.getModelEntry().getMethodCallEntity().getMethodDeclarationEntity().getName(),
@@ -245,7 +261,10 @@ public class ParameterRecommender {
 					// TODO Auto-generated method stub
 					float f1 = (Float)hmParameterModelEntryToSimilarity.get(o1);
 		        	float f2 = (Float)hmParameterModelEntryToSimilarity.get(o2);
-				        			
+				       
+		        	if ((f1 - f2) < .000000001)
+		        	        return 0;
+		        	  
 		        	if(f1>f2){
 		        		return -1;
 		        	}
@@ -253,13 +272,14 @@ public class ParameterRecommender {
 		        		return 1;
 		        	}
 		        	else {
-		        		if(hmFrequency.get(o1.getParameterContent().getAbsStringRep())>hmFrequency.get(o2.getParameterContent().getAbsStringRep())){
-			        		return -1;
-			        	}
-			        	else if(hmFrequency.get(o1.getParameterContent().getAbsStringRep())<hmFrequency.get(o2.getParameterContent().getAbsStringRep())){
-			        		return 1;
-			        	}
-			        	else return 0;
+		        		return 0;
+		        		//if(hmFrequency.get(o1.getParameterContent().getAbsStringRep())>hmFrequency.get(o2.getParameterContent().getAbsStringRep())){
+			        	//	return -1;
+			        	//}
+			        	//else if(hmFrequency.get(o1.getParameterContent().getAbsStringRep())<hmFrequency.get(o2.getParameterContent().getAbsStringRep())){
+			        	//	return 1;
+			        	//}
+			        	//else return 0;
 		        	}
 				}
 		    });
@@ -268,49 +288,64 @@ public class ParameterRecommender {
 			boolean found = false;
 			boolean simpleNameProcessing = false;
 			int rank = -1;
+			HashSet<String> hmVisitedRecommendations = new HashSet();
 			System.out.println("******************Query: "+ query.getParameterContent().getRawStringRep()+"  AbsSTringRep: "+query.getParameterContent().getAbsStringRep()+"  Other: "+query.getParameterContent().getAbsStringRepWithLiteral());
 			//System.out.println("Query: "+query.getFilePath()+" "+query.getModelEntry());
 			for(int i=0;i<possibleCandidateList.size();i++){
 				ParameterModelEntry candidate = possibleCandidateList.get(i);
 				
 				//print the top-20 candidates
-				if(i<20) {
+				if(i<5) {
 					System.out.println("possible Candidate ["+i+"] "+candidate.getParameterContent().getAbsStringRep());
 				}
 				
 				rank++;
-				if(candidate.getParameterContent() instanceof StringLiteralContent 
+				if(hmVisitedRecommendations.contains(candidate.getParameterContent().getAbsStringRep())) {
+					rank--; continue;
+				}
+				if(hmVisitedRecommendations.contains(candidate.getParameterContent().getAbsStringRep())==false &&
+						candidate.getParameterContent() instanceof StringLiteralContent 
 						&& query.getParameterContent() instanceof StringLiteralContent 
 						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())){
 					found=true;
+					System.out.println("Rank: "+rank);
 					break;
 				}
-				else if(candidate.getParameterContent() instanceof NumberLiteralContent
+				else if(hmVisitedRecommendations.contains(candidate.getParameterContent().getAbsStringRep())==false &&
+						candidate.getParameterContent() instanceof NumberLiteralContent
 						&& query.getParameterContent() instanceof NumberLiteralContent 
 						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())){
 					found=true;
+					System.out.println("Rank: "+rank);
 					break;
 				}
 				
-				else if(candidate.getParameterContent() instanceof BooleanLiteralContent 
+				else if(hmVisitedRecommendations.contains(candidate.getParameterContent().getAbsStringRep())==false &&
+						candidate.getParameterContent() instanceof BooleanLiteralContent 
 						&& query.getParameterContent() instanceof BooleanLiteralContent 
 						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())){
 					found=true;
+					System.out.println("Rank: "+rank);
 					break;
 				}
-				else if(candidate.getParameterContent() instanceof CharLiteralContent 
+				else if(hmVisitedRecommendations.contains(candidate.getParameterContent().getAbsStringRep())==false &&
+						candidate.getParameterContent() instanceof CharLiteralContent 
 						&& query.getParameterContent() instanceof CharLiteralContent 
 						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())){
 					found=true;
+					System.out.println("Rank: "+rank);
 					break;
 				}
-				else if(candidate.getParameterContent() instanceof NullLiteralContent 
+				else if(hmVisitedRecommendations.contains(candidate.getParameterContent().getAbsStringRep())==false &&
+						candidate.getParameterContent() instanceof NullLiteralContent 
 						&& query.getParameterContent() instanceof NullLiteralContent 
 						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())){
 					found=true;
+					System.out.println("Rank: "+rank);
 					break;
 				}
-				else if(candidate.getParameterContent() instanceof ThisExpressionContent 
+				else if(hmVisitedRecommendations.contains(candidate.getParameterContent().getAbsStringRep())==false &&
+						candidate.getParameterContent() instanceof ThisExpressionContent 
 						&& query.getParameterContent() instanceof ThisExpressionContent 
 						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep().trim())){
 					found=true;
@@ -348,64 +383,81 @@ public class ParameterRecommender {
 						break;
 					}
 				}
-				else if(candidate.getParameterContent() instanceof ThisExpressionContent 
+				else if(hmVisitedRecommendations.contains(candidate.getParameterContent().getAbsStringRep())==false &&
+						candidate.getParameterContent() instanceof ThisExpressionContent 
 						&& query.getParameterContent() instanceof ThisExpressionContent
 						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())) {
 					   found = true;
+					   System.out.println("Rank: "+rank);
 					   break;
 				}
-				else if(candidate.getParameterContent() instanceof CastExpressionContent 
+				else if(hmVisitedRecommendations.contains(candidate.getParameterContent().getAbsStringRep())==false &&
+						candidate.getParameterContent() instanceof CastExpressionContent 
 						&& query.getParameterContent() instanceof CastExpressionContent 
 						&& candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep().trim())){
 					found=true;
+					System.out.println("Rank: "+rank);
 					break;
 				}
 				
-				else if(candidate.getParameterContent() instanceof ClassInstanceCreationContent 
+				else if(hmVisitedRecommendations.contains(candidate.getParameterContent().getAbsStringRep())==false &&
+						candidate.getParameterContent() instanceof ClassInstanceCreationContent 
 						
 						&& query.getParameterContent() instanceof ClassInstanceCreationContent) {
 					System.out.println("Query Abs String: "+query.getParameterContent().getAbsStringRep());
-					System.out.println("Candidate: "+this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector));
+					System.out.println("Candidate: "+this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector, candidate.getParameterContent()));
 				
-					if(this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector).equals(query.getParameterContent().getAbsStringRep())) {
-						 found = true;
-						 break;
-					 }
-				}
-				else if(candidate.getParameterContent() instanceof QualifiedNameContent 
-						&& query.getParameterContent() instanceof QualifiedNameContent) {
-					System.out.println("Query Abs String: "+query.getParameterContent().getRawStringRep());
-					//System.out.println("Rec: "+candidate.getParameterContent().getAbsStringRep()+" :NameReplaced: "+this.getNameReplacedStringExpr(candidate.getParameterContent(), simpleNameCollector));
-					
-					//if(this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector).equals(query.getParameterContent().getAbsStringRep())) {
-					if(candidate.getParameterContent().getRawStringRep().equals(query.getParameterContent().getRawStringRep())) {
-						
-						found = true;
-						 break;
-					 }
-				}
-				else if(candidate.getParameterContent() instanceof MethodInvocationContent
-						&& query.getParameterContent() instanceof MethodInvocationContent
-						) {
-					System.out.println("Query Abs String: "+query.getParameterContent().getAbsStringRep());
-					System.out.println("Candidate: "+this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector));
-					
-					System.out.println("Rec: "+candidate.getParameterContent().getAbsStringRep()+" :NameReplaced: "+this.getNameReplacedStringExpr(candidate.getParameterContent(), simpleNameCollector));
-				
-					if(this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector).equals(query.getParameterContent().getAbsStringRep())) {
+					if(candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())) {
 						 found = true;
 						 System.out.println("Rank: "+rank);
 						 break;
 					 }
 				}
+				else if(hmVisitedRecommendations.contains(candidate.getParameterContent().getAbsStringRep())==false &&
+						candidate.getParameterContent() instanceof QualifiedNameContent 
+						&& query.getParameterContent() instanceof QualifiedNameContent) {
+					System.out.println("Query Abs String: "+query.getParameterContent().getRawStringRep());
+					//System.out.println("Rec: "+candidate.getParameterContent().getAbsStringRep()+" :NameReplaced: "+this.getNameReplacedStringExpr(candidate.getParameterContent(), simpleNameCollector));
+					
+					//if(this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector).equals(query.getParameterContent().getAbsStringRep())) {
+					if(candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())) {
+						
+						found = true;
+						System.out.println("Rank: "+rank);
+						 break;
+					 }
+				}
+				else if(hmVisitedRecommendations.contains(candidate.getParameterContent().getAbsStringRep())==false &&
+						candidate.getParameterContent() instanceof MethodInvocationContent
+						&& query.getParameterContent() instanceof MethodInvocationContent
+						) {
+					System.out.println("Query Abs String: "+query.getParameterContent().getAbsStringRep());
+					System.out.println("Query Name String: "+getAbsStringRepWithRawVarName(query.getParameterContent()));
+					
+					System.out.println("Candidate: "+this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector, candidate.getParameterContent()));
+					
+					System.out.println("Rec: "+candidate.getParameterContent().getAbsStringRep()+" :NameReplaced: "+this.getNameReplacedStringExpr(candidate.getParameterContent(), simpleNameCollector,candidate.getParameterContent()));
 				
+					//if(this.getNameReplacedStringExpr(candidate.getParameterContent(),simpleNameCollector,candidate.getParameterContent()).equals(getAbsStringRepWithRawVarName(query.getParameterContent()))) 
+					//this version replace identifiers with SN and type name
+					if(candidate.getParameterContent().getAbsStringRep().equals(query.getParameterContent().getAbsStringRep())) 
+							
+					{
+						 found = true;
+						 System.out.println("Rank: "+rank);
+						 break;
+					 }
+				}
+				hmVisitedRecommendations.add(candidate.getParameterContent().getAbsStringRep());
 			}
 			if(found==true) {
 				resultCollector.add(rank);
 			}
 			else {
 				System.out.println("Recommendation Not Found ");
-				resultCollector.add(-1);
+				if(does_we_have_example==true)
+				resultCollector.add(-2);
+				else resultCollector.add(-1);
 			}
 			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		/*	hmFrequency.clear();
