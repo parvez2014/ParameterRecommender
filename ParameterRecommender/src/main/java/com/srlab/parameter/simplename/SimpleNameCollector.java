@@ -39,7 +39,8 @@ import sun.reflect.generics.tree.ReturnType;
 
 /*
  * Given a method declaration and a source position, this class collect all the variables declared or used prior to the 
- * specified position. This include variables in the method declaration, parameter, field and inherited field variables
+ * specified position. This include variables in the method declaration, parameter, field and inherited field variables.
+ * main class for collecting variable information
  */
 public class SimpleNameCollector extends VoidVisitorAdapter<Void> {
 
